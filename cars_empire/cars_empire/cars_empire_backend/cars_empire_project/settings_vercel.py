@@ -31,7 +31,7 @@ ALLOWED_HOSTS = [
 ]
 
 # Database configuration: support DATABASE_URL (Neon / Supabase / Postgres / MySQL)
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
 if DATABASE_URL:
     import dj_database_url
     DATABASES = {

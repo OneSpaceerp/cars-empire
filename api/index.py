@@ -17,7 +17,7 @@ import django
 django.setup()
 
 # Auto-migrate for ephemeral SQLite in /tmp if no external DATABASE_URL is configured
-if not os.environ.get('DATABASE_URL'):
+if not os.environ.get('DATABASE_URL', '').strip():
     db_file = Path('/tmp/db.sqlite3')
     flag_file = Path('/tmp/.migrated')
     if not flag_file.exists():
