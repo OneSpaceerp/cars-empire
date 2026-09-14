@@ -53,11 +53,22 @@ def setup_db_view(request):
         try:
             from django.contrib.auth import get_user_model
             User = get_user_model()
-            if not User.objects.filter(is_superuser=True).exists():
-                User.objects.create_superuser('admin', 'admin@carsempire.net', 'Admin123456!')
-                out.write("\nDefault admin created:\nUsername: admin\nPassword: Admin123456!\n")
+            admin_email = 'admin@carsempire.net'
+            admin_user = User.objects.filter(email=admin_email).first()
+            if not admin_user:
+                admin_user = User.objects.create_superuser(
+                    email=admin_email,
+                    password='Admin123456!',
+                    phone='+201000000000',
+                    username='admin'
+                )
+                out.write(f"\nDefault admin created successfully!\nEmail: {admin_email}\nPassword: Admin123456!\n")
             else:
-                out.write("\nAdmin user already exists.\n")
+                admin_user.set_password('Admin123456!')
+                admin_user.is_staff = True
+                admin_user.is_superuser = True
+                admin_user.save()
+                out.write(f"\nDefault admin credentials set!\nEmail: {admin_email}\nPassword: Admin123456!\n")
         except Exception as user_err:
             out.write(f"\nUser creation check note: {user_err}\n")
         result = "SUCCESS: Database migrated successfully!\n\n" + out.getvalue()
