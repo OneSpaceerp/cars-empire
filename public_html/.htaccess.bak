@@ -1,0 +1,84 @@
+# CloudLinux Passenger Configuration
+PassengerAppRoot "/home/carsempire/repositories/cars_empire/cars_empire_backend"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/repositories/cars_empire/cars_empire_backend/3.10/bin/python"
+PassengerStartupFile passenger_wsgi.py
+PassengerAppType wsgi
+<IfModule Litespeed>
+    SetEnv DJANGO_SETTINGS_MODULE cars_empire_project.settings
+    SetEnv PYTHONPATH /home/carsempire/repositories/cars_empire/cars_empire_backend
+</IfModule>
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Handle static files
+    RewriteCond %{REQUEST_URI} ^/static/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^static/(.*)$ /home/carsempire/public_html/static/$1 [L]
+    # Handle media files
+    RewriteCond %{REQUEST_URI} ^/media/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^media/(.*)$ /home/carsempire/public_html/media/$1 [L]
+    # Handle all other requests
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^(.*)$ / [QSA,L]
+</IfModule>
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/app/cars_empire/cars_empire_backend"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/app/cars_empire/cars_empire_backend/3.11/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/app/cars_empire/cars_empire_backend"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/app/cars_empire/cars_empire_backend/3.11/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/app/cars_empire/cars_empire_backend"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/app/cars_empire/cars_empire_backend/3.11/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/repositories/cars_empire/cars_empire_backend_new"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/repositories/cars_empire/cars_empire_backend_new/3.11/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/repositfies/cars_empire/cars_empire_backend"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/repositfies/cars_empire/cars_empire_backend/3.10/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/repositfies/cars_empire/cars_empire_backend"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/repositfies/cars_empire/cars_empire_backend/3.9/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/repositories/cars_empire/cars_empire_backend_app"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/repositories/cars_empire/cars_empire_backend_app/3.10/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/app/cars_empire/cars_empire_backend"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/app/cars_empire/cars_empire_backend/3.10/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/app/cars_empire/cars_empire_backend"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/app/cars_empire/cars_empire_backend/3.10/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/carsempire/app/cars_empire/cars_empire_backend"
+PassengerBaseURI "/"
+PassengerPython "/home/carsempire/virtualenv/app/cars_empire/cars_empire_backend/3.10/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END

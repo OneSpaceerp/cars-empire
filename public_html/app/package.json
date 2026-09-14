@@ -1,0 +1,17 @@
+﻿{
+  "name": "carsempire-pwa-server",
+  "version": "1.0.0",
+  "description": "CarsEmpire PWA Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": ["pwa", "cars", "services", "deals"],
+  "author": "CarsEmpire",
+  "license": "MIT"
+}

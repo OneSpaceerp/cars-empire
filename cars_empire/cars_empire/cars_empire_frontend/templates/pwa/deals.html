@@ -1,0 +1,394 @@
+{% extends "pwa/base.html" %}
+
+{% block title %}Deals - Cars Empire{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="header-section py-4">
+    <div class="container">
+        <h1 class="text-center mb-4" data-i18n="browse_deals">Browse Deals</h1>
+        
+        <!-- Search and Filters -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="search-input" 
+                           placeholder="Search deals..." data-i18n-placeholder="search_placeholder">
+                    <button class="btn btn-primary" type="button" onclick="searchDeals()">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="category-filter" onchange="filterDeals()">
+                    <option value="" data-i18n="all_categories">All Categories</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Sort Options -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <select class="form-select" id="sort-filter" onchange="sortDeals()">
+                    <option value="newest" data-i18n="sort_date_newest">Date: Newest First</option>
+                    <option value="oldest" data-i18n="sort_date_oldest">Date: Oldest First</option>
+                    <option value="price_low" data-i18n="sort_price_low_high">Price: Low to High</option>
+                    <option value="price_high" data-i18n="sort_price_high_low">Price: High to Low</option>
+                    <option value="popularity" data-i18n="sort_popularity">Popularity</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="view-mode" id="grid-view" checked>
+                    <label class="btn btn-outline-primary" for="grid-view">
+                        <i class="bi bi-grid"></i>
+                    </label>
+                    
+                    <input type="radio" class="btn-check" name="view-mode" id="list-view">
+                    <label class="btn btn-outline-primary" for="list-view">
+                        <i class="bi bi-list"></i>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Advert Section -->
+<section class="advert-section py-3" id="advert-section" style="display: none;">
+    <div class="container">
+        <div class="advert-content">
+            <!-- Advert content will be loaded here -->
+        </div>
+    </div>
+</section>
+
+<!-- Deals Section -->
+<section class="deals-section py-4">
+    <div class="container">
+        <div class="row" id="deals-container">
+            <div class="col-12 text-center">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Load More Button -->
+        <div class="text-center mt-4" id="load-more-section" style="display: none;">
+            <button class="btn btn-outline-primary" onclick="loadMoreDeals()" id="load-more-btn">
+                <span data-i18n="load_more">Load More</span>
+                <span class="spinner-border spinner-border-sm ms-2" role="status" style="display: none;"></span>
+            </button>
+        </div>
+        
+        <!-- No Results -->
+        <div class="text-center mt-4" id="no-results" style="display: none;">
+            <i class="bi bi-search display-1 text-muted"></i>
+            <h4 class="text-muted" data-i18n="no_results">No results found</h4>
+            <p class="text-muted" data-i18n="try_again">Try adjusting your search criteria</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let isLoading = false;
+let hasMoreDeals = true;
+let currentFilters = {};
+let currentSort = 'newest';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('PWA Deals page initializing...');
+    
+    // Load categories for filter
+    await loadCategories();
+    
+    // Load initial deals
+    await loadDeals();
+    
+    // Load advert
+    await loadAdvert();
+    
+    // Setup view mode toggle
+    setupViewModeToggle();
+    
+    console.log('PWA Deals page initialized successfully');
+});
+
+// Load categories for filter
+async function loadCategories() {
+    try {
+        const categories = await api.categories.getAll();
+        const filter = document.getElementById('category-filter');
+        
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            filter.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
+}
+
+// Load deals
+async function loadDeals(reset = true) {
+    if (isLoading) return;
+    
+    isLoading = true;
+    
+    if (reset) {
+        currentPage = 1;
+        hasMoreDeals = true;
+        document.getElementById('deals-container').innerHTML = `
+            <div class="col-12 text-center">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    try {
+        const deals = await api.deals.getAll(currentPage, currentFilters);
+        
+        if (reset) {
+            document.getElementById('deals-container').innerHTML = '';
+        }
+        
+        if (deals.length === 0) {
+            if (reset) {
+                showNoResults();
+            }
+            hasMoreDeals = false;
+        } else {
+            deals.forEach(deal => {
+                const dealCard = createDealCard(deal);
+                document.getElementById('deals-container').appendChild(dealCard);
+            });
+            
+            hasMoreDeals = deals.length >= 12; // Assuming 12 items per page
+        }
+        
+        updateLoadMoreButton();
+        
+    } catch (error) {
+        console.error('Error loading deals:', error);
+        showError('Failed to load deals');
+    } finally {
+        isLoading = false;
+    }
+}
+
+// Create deal card
+function createDealCard(deal) {
+    const col = document.createElement('div');
+    col.className = 'col-md-6 col-lg-4 mb-4';
+    
+    const imageUrl = deal.images && deal.images.length > 0 ? deal.images[0].image : '/static/pwa/images/default-deal.png';
+    const discount = deal.original_price ? Math.round(((deal.original_price - deal.discount_price) / deal.original_price) * 100) : 0;
+    
+    col.innerHTML = `
+        <div class="card deal-card h-100">
+            <div class="position-relative">
+                <img src="${imageUrl}" class="card-img-top" alt="${deal.title}">
+                ${discount > 0 ? `<span class="badge bg-danger position-absolute top-0 start-0 m-2">-${discount}%</span>` : ''}
+                ${deal.is_featured ? `<span class="badge bg-warning position-absolute top-0 end-0 m-2">Featured</span>` : ''}
+            </div>
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">${deal.title}</h5>
+                <p class="card-text text-truncate-2">${deal.description}</p>
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="deal-price">$${deal.discount_price}</span>
+                        ${deal.original_price ? `<span class="deal-original-price">$${deal.original_price}</span>` : ''}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="/pwa/deal/${deal.id}/" class="btn btn-outline-primary btn-sm flex-fill" data-i18n="view_deal">View Deal</a>
+                        <button class="btn btn-primary btn-sm" onclick="addToCart(${deal.id})" data-i18n="add_to_cart">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return col;
+}
+
+// Load more deals
+async function loadMoreDeals() {
+    if (!hasMoreDeals || isLoading) return;
+    
+    currentPage++;
+    await loadDeals(false);
+}
+
+// Search deals
+function searchDeals() {
+    const query = document.getElementById('search-input').value.trim();
+    if (query) {
+        currentFilters.search = query;
+        loadDeals();
+    }
+}
+
+// Filter deals
+function filterDeals() {
+    const categoryId = document.getElementById('category-filter').value;
+    if (categoryId) {
+        currentFilters.category = categoryId;
+    } else {
+        delete currentFilters.category;
+    }
+    loadDeals();
+}
+
+// Sort deals
+function sortDeals() {
+    currentSort = document.getElementById('sort-filter').value;
+    currentFilters.sort = currentSort;
+    loadDeals();
+}
+
+// Setup view mode toggle
+function setupViewModeToggle() {
+    const gridView = document.getElementById('grid-view');
+    const listView = document.getElementById('list-view');
+    const container = document.getElementById('deals-container');
+    
+    gridView.addEventListener('change', () => {
+        container.className = 'row';
+        container.querySelectorAll('.col-md-6').forEach(col => {
+            col.className = 'col-md-6 col-lg-4 mb-4';
+        });
+    });
+    
+    listView.addEventListener('change', () => {
+        container.className = 'row';
+        container.querySelectorAll('.col-md-6').forEach(col => {
+            col.className = 'col-12 mb-3';
+        });
+    });
+}
+
+// Show no results
+function showNoResults() {
+    document.getElementById('deals-container').innerHTML = '';
+    document.getElementById('no-results').style.display = 'block';
+    document.getElementById('load-more-section').style.display = 'none';
+}
+
+// Update load more button
+function updateLoadMoreButton() {
+    const loadMoreSection = document.getElementById('load-more-section');
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    
+    if (hasMoreDeals) {
+        loadMoreSection.style.display = 'block';
+        loadMoreBtn.disabled = false;
+    } else {
+        loadMoreSection.style.display = 'none';
+    }
+}
+
+// Load advert
+async function loadAdvert() {
+    try {
+        const response = await fetch('/pwa/api/advert/?page=deals');
+        if (response.ok) {
+            const advert = await response.json();
+            if (advert && (advert.images || advert.videos)) {
+                displayAdvert(advert);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading advert:', error);
+    }
+}
+
+// Display advert
+function displayAdvert(advert) {
+    const section = document.getElementById('advert-section');
+    const content = section.querySelector('.advert-content');
+    
+    if (advert.images && advert.images.length > 0) {
+        content.innerHTML = `
+            <div id="advert-carousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    ${advert.images.map((image, index) => `
+                        <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                            <img src="${image.image}" class="d-block w-100" alt="Advertisement">
+                        </div>
+                    `).join('')}
+                </div>
+                ${advert.images.length > 1 ? `
+                    <button class="carousel-control-prev" type="button" data-bs-target="#advert-carousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#advert-carousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    } else if (advert.videos && advert.videos.length > 0) {
+        content.innerHTML = `
+            <video class="w-100" controls>
+                <source src="${advert.videos[0].video}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        `;
+    }
+    
+    section.style.display = 'block';
+}
+
+// Add to cart
+function addToCart(dealId) {
+    api.cart.add(dealId, 1).then(() => {
+        showToast('Added to cart successfully', 'success');
+        updateCartCount();
+    }).catch(error => {
+        console.error('Error adding to cart:', error);
+        showToast('Failed to add to cart', 'error');
+    });
+}
+
+// Utility functions
+function showError(message) {
+    document.getElementById('deals-container').innerHTML = `
+        <div class="col-12 text-center">
+            <i class="bi bi-exclamation-triangle display-1 text-muted"></i>
+            <h4 class="text-muted">Error</h4>
+            <p class="text-muted">${message}</p>
+        </div>
+    `;
+}
+
+function showToast(message, type = 'info') {
+    if (window.pwaApp) {
+        window.pwaApp.showToast(message, type);
+    }
+}
+
+function updateCartCount() {
+    api.cart.get().then(cart => {
+        const count = cart.items ? cart.items.length : 0;
+        document.getElementById('cart-count').textContent = count;
+    }).catch(error => {
+        console.error('Error updating cart count:', error);
+    });
+}
+
+// Initialize cart count
+updateCartCount();
+</script>
+{% endblock %} 

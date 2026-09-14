@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ merchant.name }} - Cars Empire{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Merchant Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                {% if merchant.logo %}
+                <img src="{{ merchant.logo.url }}" alt="{{ merchant.name }}" class="me-3" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                {% endif %}
+                <div>
+                    <h1 class="mb-1">{{ merchant.name }}</h1>
+                    {% if merchant.is_verified %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Verified</span>
+                    {% endif %}
+                    {% if merchant.is_featured %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> Featured</span>
+                    {% endif %}
+                    {% if merchant.rating %}
+                    <div class="mt-1">
+                        <span class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= merchant.rating %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="text-muted ms-1">({{ merchant.rating }})</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Merchant Images Gallery -->
+            {% if merchant.images.all %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-images"></i> Gallery</h5>
+                    <div id="merchantGallery" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            {% for image in merchant.images.all %}
+                            <button type="button" data-bs-target="#merchantGallery" data-bs-slide-to="{{ forloop.counter0 }}" 
+                                    {% if forloop.first %}class="active" aria-current="true"{% endif %} 
+                                    aria-label="Slide {{ forloop.counter }}"></button>
+                            {% endfor %}
+                        </div>
+                        <div class="carousel-inner">
+                            {% for image in merchant.images.all %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ image.image.url }}" alt="{{ image.caption|default:merchant.name }}" 
+                                     class="d-block w-100 rounded" style="height: 400px; object-fit: cover;">
+                                {% if image.caption %}
+                                <div class="carousel-caption d-none d-md-block">
+                                    <p class="text-white bg-dark bg-opacity-75 rounded px-2 py-1">{{ image.caption }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#merchantGallery" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#merchantGallery" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Merchant Description -->
+            {% if merchant.description %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-info-circle"></i> About</h5>
+                    <p class="card-text">{{ merchant.description|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Branches Section -->
+            {% if merchant.branches.all %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-geo-alt"></i> Branches</h5>
+                    <div class="row">
+                        {% for branch in merchant.branches.all %}
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="mb-2">
+                                    {{ branch.name }}
+                                    {% if branch.is_main %}
+                                    <span class="badge bg-primary">Main Branch</span>
+                                    {% endif %}
+                                </h6>
+                                <p class="text-muted mb-2">
+                                    <i class="bi bi-geo-alt"></i> {{ branch.address_text }}
+                                </p>
+                                {% if branch.contact_phone %}
+                                <p class="mb-1">
+                                    <i class="bi bi-telephone"></i> 
+                                    <a href="tel:{{ branch.contact_phone }}" class="text-decoration-none">{{ branch.contact_phone }}</a>
+                                </p>
+                                {% endif %}
+                                {% if branch.email %}
+                                <p class="mb-1">
+                                    <i class="bi bi-envelope"></i> 
+                                    <a href="mailto:{{ branch.email }}" class="text-decoration-none">{{ branch.email }}</a>
+                                </p>
+                                {% endif %}
+                                {% if branch.opening_time and branch.closing_time %}
+                                <p class="mb-2">
+                                    <i class="bi bi-clock"></i> 
+                                    {{ branch.opening_time|time:"H:i" }} - {{ branch.closing_time|time:"H:i" }}
+                                </p>
+                                {% endif %}
+                                {% if branch.latitude and branch.longitude %}
+                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ branch.latitude }},{{ branch.longitude }}" 
+                                   target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-map"></i> Get Directions
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Services Section -->
+            {% if merchant.services.all %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-tools"></i> Services</h5>
+                    <div class="row">
+                        {% for service in merchant.services.all %}
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="mb-2">{{ service.name }}</h6>
+                                <p class="text-muted small mb-2">{{ service.description|truncatewords:20 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-primary fw-bold">${{ service.price }}</span>
+                                    {% if service.duration %}
+                                    <span class="text-muted small">{{ service.duration }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Deals Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-tag"></i> Current Deals</h5>
+                    <div class="row" id="deals-container">
+                        <div class="col-12 text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Contact Information -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-person-lines-fill"></i> Contact Information</h5>
+                    
+                    {% if merchant.phone_number %}
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-telephone text-primary me-2"></i>
+                        <a href="tel:{{ merchant.phone_number }}" class="text-decoration-none">{{ merchant.phone_number }}</a>
+                    </div>
+                    {% endif %}
+
+                    {% if merchant.email %}
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-envelope text-primary me-2"></i>
+                        <a href="mailto:{{ merchant.email }}" class="text-decoration-none">{{ merchant.email }}</a>
+                    </div>
+                    {% endif %}
+
+                    {% if merchant.website %}
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-globe text-primary me-2"></i>
+                        <a href="{{ merchant.website }}" target="_blank" class="text-decoration-none">Visit Website</a>
+                    </div>
+                    {% endif %}
+
+                    {% if merchant.address_text %}
+                    <div class="d-flex align-items-start mb-3">
+                        <i class="bi bi-geo-alt text-primary me-2 mt-1"></i>
+                        <span>{{ merchant.address_text }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if merchant.latitude and merchant.longitude %}
+                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ merchant.latitude }},{{ merchant.longitude }}" 
+                       target="_blank" class="btn btn-primary w-100">
+                        <i class="bi bi-map"></i> Get Directions
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Social Media Links -->
+            {% if merchant.facebook_url or merchant.twitter_url or merchant.instagram_url or merchant.linkedin_url or merchant.tiktok_url or merchant.youtube_url %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-share"></i> Follow Us</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if merchant.facebook_url %}
+                        <a href="{{ merchant.facebook_url }}" target="_blank" class="btn btn-outline-primary">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        {% endif %}
+                        {% if merchant.twitter_url %}
+                        <a href="{{ merchant.twitter_url }}" target="_blank" class="btn btn-outline-info">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        {% endif %}
+                        {% if merchant.instagram_url %}
+                        <a href="{{ merchant.instagram_url }}" target="_blank" class="btn btn-outline-danger">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        {% endif %}
+                        {% if merchant.linkedin_url %}
+                        <a href="{{ merchant.linkedin_url }}" target="_blank" class="btn btn-outline-primary">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        {% endif %}
+                        {% if merchant.tiktok_url %}
+                        <a href="{{ merchant.tiktok_url }}" target="_blank" class="btn btn-outline-dark">
+                            <i class="bi bi-tiktok"></i>
+                        </a>
+                        {% endif %}
+                        {% if merchant.youtube_url %}
+                        <a href="{{ merchant.youtube_url }}" target="_blank" class="btn btn-outline-danger">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Categories -->
+            {% if merchant.categories.all %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-tags"></i> Categories</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for category in merchant.categories.all %}
+                        <a href="{% url 'category_detail' category.id %}" class="badge bg-secondary text-decoration-none">
+                            {{ category.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Car Makes -->
+            {% if merchant.makes.all %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-car-front"></i> Car Makes</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for make in merchant.makes.all %}
+                        <span class="badge bg-light text-dark">{{ make.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Business Hours -->
+            {% if merchant.opening_hours %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-clock"></i> Business Hours</h5>
+                    {% for day, hours in merchant.opening_hours.items %}
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold">{{ day|title }}</span>
+                        <span>{{ hours }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    const merchantId = "{{ merchant.id }}";
+    const dealsContainer = document.getElementById('deals-container');
+    
+    try {
+        const deals = await api.deals.getByMerchant(merchantId);
+        
+        if (deals.length === 0) {
+            dealsContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No deals available at the moment.</p></div>';
+            return;
+        }
+        
+        dealsContainer.innerHTML = '';
+        deals.forEach(function(deal) {
+            const dealHtml = `
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">${deal.title}</h6>
+                            <p class="card-text text-muted small">${deal.description ? deal.description.substring(0, 100) + '...' : ''}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-decoration-line-through text-muted">$${deal.original_price}</span>
+                                    <span class="text-primary fw-bold ms-2">$${deal.discount_price}</span>
+                                </div>
+                                <a href="/deals/${deal.id}" class="btn btn-sm btn-primary">View Deal</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            dealsContainer.innerHTML += dealHtml;
+        });
+    } catch (error) {
+        console.error('Error loading deals:', error);
+        dealsContainer.innerHTML = '<div class="col-12 text-center"><p class="text-danger">Error loading deals. Please try again later.</p></div>';
+    }
+});
+</script>
+{% endblock %} 

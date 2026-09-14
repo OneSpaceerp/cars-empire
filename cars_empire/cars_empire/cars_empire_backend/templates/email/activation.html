@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Activate your account</title>
+</head>
+<body>
+    <p>Hello {{ user.get_full_name|default:user.email }},</p>
+    <p>Thank you for registering at Cars Empire!</p>
+    <p>
+        Please click the link below to activate your account:<br>
+        <a href="{{ activation_url }}">{{ activation_url }}</a>
+    </p>
+    <p>If you did not register, please ignore this email.</p>
+    <p>Best regards,<br>Cars Empire Team</p>
+</body>
+</html> 

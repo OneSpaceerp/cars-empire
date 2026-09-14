@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category_name|default:"All Deals" }} - Cars Empire{% endblock %}
+
+{% block content %}
+<body>
+{% if advert and advert.images.count or advert.videos.count %}
+  <div class="advert-block mb-4">
+    {% include "advert_block.html" %}
+  </div>
+{% endif %}
+<div class="row">
+    <!-- Filter Sidebar -->
+    <div class="col-lg-3 mb-4">
+        <h4>Filters</h4>
+        <div class="accordion" id="filterAccordion">
+            <!-- Category Filter -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingCategory">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCategory" aria-expanded="false" aria-controls="collapseCategory">
+                        Category
+                    </button>
+                </h2>
+                <div id="collapseCategory" class="accordion-collapse collapse" aria-labelledby="headingCategory" data-bs-parent="#filterAccordion">
+                    <div class="accordion-body">
+                        {% for category in categories %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="{{ category.id }}" id="cat{{ category.id }}" name="category" {% if category.id|stringformat:"i" == request.GET.category %}checked{% endif %}>
+                            <label class="form-check-label" for="cat{{ category.id }}">{{ category.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Car Model Filter -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingCarModel">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCarModel" aria-expanded="false" aria-controls="collapseCarModel">
+                        Car Model
+                    </button>
+                </h2>
+                <div id="collapseCarModel" class="accordion-collapse collapse" aria-labelledby="headingCarModel" data-bs-parent="#filterAccordion">
+                    <div class="accordion-body">
+                        <select class="form-select mb-2" aria-label="Select Make">
+                            <option selected>Select Make</option>
+                            <option value="1">Toyota</option>
+                            <option value="2">BMW</option>
+                            <option value="3">Mercedes-Benz</option>
+                        </select>
+                        <select class="form-select mb-2" aria-label="Select Model" disabled>
+                            <option selected>Select Model</option>
+                        </select>
+                        <select class="form-select" aria-label="Select Year" disabled>
+                            <option selected>Select Year</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Range Filter -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingPrice">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrice" aria-expanded="false" aria-controls="collapsePrice">
+                        Price Range
+                    </button>
+                </h2>
+                <div id="collapsePrice" class="accordion-collapse collapse" aria-labelledby="headingPrice" data-bs-parent="#filterAccordion">
+                    <div class="accordion-body">
+                        <label for="customRange1" class="form-label">Max Price: EGP 5000</label>
+                        <input type="range" class="form-range" id="customRange1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Filter -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingLocation">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLocation" aria-expanded="false" aria-controls="collapseLocation">
+                        Location
+                    </button>
+                </h2>
+                <div id="collapseLocation" class="accordion-collapse collapse" aria-labelledby="headingLocation" data-bs-parent="#filterAccordion">
+                    <div class="accordion-body">
+                        <input type="text" class="form-control" placeholder="Enter City or Area">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Filter -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingRating">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRating" aria-expanded="false" aria-controls="collapseRating">
+                        Rating
+                    </button>
+                </h2>
+                <div id="collapseRating" class="accordion-collapse collapse" aria-labelledby="headingRating" data-bs-parent="#filterAccordion">
+                    <div class="accordion-body">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ratingFilter" id="rating4plus">
+                            <label class="form-check-label" for="rating4plus">4 Stars & Up</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ratingFilter" id="rating3plus">
+                            <label class="form-check-label" for="rating3plus">3 Stars & Up</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-grid gap-2 mt-3">
+            <button class="btn btn-primary" type="button" onclick="applyFilters()">Apply Filters</button>
+        </div>
+    </div>
+
+    <!-- Deal Listings -->
+    <div class="col-lg-9">
+        <h3>{{ category_name|default:"All Deals" }}</h3>
+        <p class="text-muted">Showing {{ total_results }} results</p>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for deal in deals %}
+            <div class="col">
+                <div class="card deal-card h-100">
+                    <!-- Deal Image with Badges -->
+                    <div class="position-relative">
+                        {% if deal.images.first %}
+                        <img src="{{ deal.images.first.image.url }}" class="card-img-top" alt="{{ deal.title }}">
+                        {% else %}
+                        <img src="https://via.placeholder.com/300x200.png?text=Deal+Image" class="card-img-top" alt="Deal Placeholder Image">
+                        {% endif %}
+                        
+                        <!-- Deal Badges -->
+                        <div class="deal-badge">
+                            {% if deal.is_flash_sale %}
+                            <span class="badge badge-flash">FLASH SALE</span>
+                            {% elif deal.is_trending %}
+                            <span class="badge badge-trending">TRENDING</span>
+                            {% elif deal.is_featured %}
+                            <span class="badge badge-featured">FEATURED</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Discount Badge -->
+                        <div class="position-absolute top-0 start-0 m-2">
+                            <span class="deal-discount">{{ deal.discount_percentage }}% OFF</span>
+                        </div>
+                        
+                        <!-- Save Button -->
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <button class="btn btn-sm btn-light rounded-circle save-deal-btn" data-deal-id="{{ deal.id }}" title="Save Deal">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">{{ deal.title }}</h5>
+                            <small class="text-muted">{{ deal.urgency_level|title }}</small>
+                        </div>
+                        
+                        <p class="card-text text-muted small mb-2">
+                            <i class="fas fa-store me-1"></i>{{ deal.merchant.name }}
+                        </p>
+                        
+                        <p class="card-text mb-3">{{ deal.description|truncatewords:15 }}</p>
+                        
+                        {% if deal.applicable_models.exists %}
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-car me-1"></i>
+                                Applicable: {{ deal.applicable_models.all|join:", " }}
+                            </small>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Price Section -->
+                        <div class="mt-auto">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div>
+                                    <span class="deal-price">EGP {{ deal.discount_price }}</span>
+                                    <span class="deal-original-price ms-2">EGP {{ deal.original_price }}</span>
+                                </div>
+                                <div class="text-end">
+                                    <div class="small text-muted">You Save</div>
+                                    <div class="fw-bold text-success">EGP {{ deal.original_price|add:deal.discount_price|floatformat:2 }}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Rating and Views -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                {% if deal.merchant.rating %}
+                                <div class="d-flex align-items-center">
+                                    <div class="text-warning me-1">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= deal.merchant.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted">{{ deal.merchant.rating }}/5</small>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="text-muted small">
+                                    <i class="fas fa-eye me-1"></i>{{ deal.views_count }} views
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2">
+                                {% if deal.slug %}
+                                    <a href="{% url 'deal-detail' deal.slug %}" class="btn btn-primary flex-fill">
+                                        <i class="fas fa-eye me-1"></i>View Deal
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'deal-detail' deal.id %}" class="btn btn-primary flex-fill">
+                                        <i class="fas fa-eye me-1"></i>View Deal
+                                    </a>
+                                {% endif %}
+                                
+                                <button class="btn btn-outline-secondary share-deal-btn" data-deal-id="{{ deal.id }}" title="Share Deal">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No deals found</h4>
+                    <p class="text-muted">Try adjusting your filters or check back later for new deals.</p>
+                    <button class="btn btn-primary" onclick="clearFilters()">Clear Filters</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if deals.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if deals.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ deals.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                </li>
+                {% endif %}
+
+                {% for i in deals.paginator.page_range %}
+                <li class="page-item {% if deals.number == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">{{ i }}</a>
+                </li>
+                {% endfor %}
+
+                {% if deals.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ deals.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function applyFilters() {
+    const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked'))
+        .map(cb => cb.value);
+    
+    const url = new URL(window.location.href);
+    if (selectedCategories.length > 0) {
+        url.searchParams.set('category', selectedCategories.join(','));
+    } else {
+        url.searchParams.delete('category');
+    }
+    
+    window.location.href = url.toString();
+}
+</script>
+{% endblock %}
+{% endblock %}
+

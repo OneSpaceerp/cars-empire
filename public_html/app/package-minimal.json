@@ -1,0 +1,19 @@
+{
+  "name": "carsempire-pwa",
+  "version": "1.0.0",
+  "description": "CarsEmpire Progressive Web App - Minimal Dependencies",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "next dev",
+    "build": "next build"
+  },
+  "dependencies": {
+    "next": "15.5.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

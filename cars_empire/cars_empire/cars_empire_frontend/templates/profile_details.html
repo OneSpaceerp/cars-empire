@@ -1,0 +1,147 @@
+{% extends 'profile_base.html' %}
+
+{% block title %}Account Details - My Profile - Cars Empire{% endblock %}
+
+{% block profile_content %}
+    <h4>Account Details</h4>
+    <hr>
+    <form id="profile-form">
+        <div class="row mb-3">
+            <label for="inputFirstName" class="col-sm-2 col-form-label">First Name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="inputFirstName" name="first_name">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputLastName" class="col-sm-2 col-form-label">Last Name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="inputLastName" name="last_name">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputEmail" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control" id="inputEmail" readonly>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputPhone" class="col-sm-2 col-form-label">Phone Number</label>
+            <div class="col-sm-10">
+                <input type="tel" class="form-control" id="inputPhone" name="phone">
+            </div>
+        </div>
+        <hr>
+        <h5>Change Password</h5>
+        <div class="row mb-3">
+            <label for="inputCurrentPassword" class="col-sm-2 col-form-label">Current Password</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control" id="inputCurrentPassword" name="current_password">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputNewPassword" class="col-sm-2 col-form-label">New Password</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control" id="inputNewPassword" name="new_password">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputConfirmPassword" class="col-sm-2 col-form-label">Confirm New Password</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control" id="inputConfirmPassword" name="confirm_password">
+            </div>
+        </div>
+
+        <div id="profile-message" class="alert d-none mb-3"></div>
+        <button type="submit" class="btn btn-primary" id="save-button">
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="save-spinner"></span>
+            Save Changes
+        </button>
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function initializeProfileContent(profile) {
+    // Fill in the form fields with user data
+    document.getElementById('inputFirstName').value = profile.first_name || '';
+    document.getElementById('inputLastName').value = profile.last_name || '';
+    document.getElementById('inputEmail').value = profile.email || '';
+    document.getElementById('inputPhone').value = profile.phone || '';
+    
+    // Handle form submission
+    const form = document.getElementById('profile-form');
+    const messageDiv = document.getElementById('profile-message');
+    const saveButton = document.getElementById('save-button');
+    const saveSpinner = document.getElementById('save-spinner');
+    
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Show loading state
+        saveButton.disabled = true;
+        saveSpinner.classList.remove('d-none');
+        messageDiv.classList.add('d-none');
+        
+        try {
+            // Get form data
+            const formData = {
+                first_name: document.getElementById('inputFirstName').value,
+                last_name: document.getElementById('inputLastName').value,
+                phone: document.getElementById('inputPhone').value
+            };
+            
+            // Check if password change is requested
+            const currentPassword = document.getElementById('inputCurrentPassword').value;
+            const newPassword = document.getElementById('inputNewPassword').value;
+            const confirmPassword = document.getElementById('inputConfirmPassword').value;
+            
+            if (currentPassword && newPassword) {
+                if (newPassword !== confirmPassword) {
+                    throw new Error('New passwords do not match');
+                }
+                
+                // Update password
+                const passwordResult = await api.auth.changePassword({
+                    current_password: currentPassword,
+                    new_password: newPassword
+                });
+                
+                if (!passwordResult) {
+                    throw new Error('Failed to update password');
+                }
+                
+                // Clear password fields
+                document.getElementById('inputCurrentPassword').value = '';
+                document.getElementById('inputNewPassword').value = '';
+                document.getElementById('inputConfirmPassword').value = '';
+            }
+            
+            // Update profile
+            const result = await api.auth.updateProfile(formData);
+            if (result) {
+                // Update user data in localStorage
+                localStorage.setItem('user', JSON.stringify(result));
+                
+                // Show success message
+                messageDiv.classList.remove('d-none', 'alert-danger');
+                messageDiv.classList.add('alert-success');
+                messageDiv.textContent = 'Profile updated successfully';
+            } else {
+                throw new Error('Failed to update profile');
+            }
+        } catch (error) {
+            // Show error message
+            messageDiv.classList.remove('d-none', 'alert-success');
+            messageDiv.classList.add('alert-danger');
+            messageDiv.textContent = error.message || 'Failed to update profile';
+        } finally {
+            // Reset loading state
+            saveButton.disabled = false;
+            saveSpinner.classList.add('d-none');
+        }
+    });
+}
+</script>
+{% endblock %}
+

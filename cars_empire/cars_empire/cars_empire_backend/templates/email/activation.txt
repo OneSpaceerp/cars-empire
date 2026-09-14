@@ -1,0 +1,11 @@
+Hello {{ user.get_full_name|default:user.email }},
+
+Thank you for registering at Cars Empire!
+
+Please click the link below to activate your account:
+{{ activation_url }}
+
+If you did not register, please ignore this email.
+
+Best regards,
+Cars Empire Team 

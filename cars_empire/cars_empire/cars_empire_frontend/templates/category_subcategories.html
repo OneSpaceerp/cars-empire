@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ parent_category.name }} - Categories | Cars Empire{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Category Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'deals' %}">Deals</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ parent_category.name }}</li>
+                </ol>
+            </nav>
+            <h2 class="text-center mb-3">{{ parent_category.name }}</h2>
+            {% if parent_category.description %}
+                <p class="text-muted text-center">{{ parent_category.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sub-categories Section -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4 text-center">
+                <i class="fas fa-list me-2"></i>Choose a Category
+            </h3>
+            <div class="row">
+                {% for subcategory in subcategories %}
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm category-card">
+                        <a href="{% url 'category_detail' subcategory.id %}" class="text-decoration-none">
+                            <div class="card-body text-center">
+                                {% if subcategory.icon %}
+                                    <img src="{{ subcategory.icon.url }}" alt="{{ subcategory.name }}" 
+                                         class="category-icon mb-3" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%;">
+                                {% else %}
+                                    <div class="category-icon mb-3 mx-auto d-flex align-items-center justify-content-center" 
+                                         style="width: 80px; height: 80px; background: #f8f9fa; border-radius: 50%; border: 2px solid #dee2e6;">
+                                        <i class="fas fa-folder fa-2x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <h5 class="card-title text-dark">{{ subcategory.name }}</h5>
+                                {% if subcategory.description %}
+                                    <p class="card-text text-muted small">{{ subcategory.description|truncatechars:80 }}</p>
+                                {% endif %}
+                                <div class="mt-3">
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-store me-1"></i>
+                                        View Merchants & Deals
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No sub-categories available for {{ parent_category.name }}.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Categories Button -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to All Categories
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.category-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: 1px solid #e9ecef;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    border-color: #007bff;
+}
+
+.category-card a {
+    color: inherit;
+}
+
+.category-card a:hover {
+    text-decoration: none;
+}
+
+.category-icon {
+    transition: transform 0.2s ease-in-out;
+}
+
+.category-card:hover .category-icon {
+    transform: scale(1.1);
+}
+</style>
+{% endblock %}

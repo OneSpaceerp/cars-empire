@@ -1,0 +1,610 @@
+{% extends "pwa/base.html" %}
+
+{% block title %}Cars Empire - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4" data-i18n="welcome_title">Welcome to Cars Empire</h1>
+                <p class="lead mb-4" data-i18n="welcome_subtitle">Your destination for the best automotive deals and services</p>
+                <div class="d-flex gap-3">
+                    <a href="/pwa/deals/" class="btn btn-primary btn-lg" data-i18n="browse_deals">Browse Deals</a>
+                    <a href="/pwa/merchants/" class="btn btn-outline-primary btn-lg" data-i18n="find_merchants">Find Merchants</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="bi bi-car-front display-1 text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search Section -->
+<section class="search-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="search-box">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg" id="search-input" 
+                               placeholder="Search deals, merchants..." data-i18n-placeholder="search_placeholder">
+                        <button class="btn btn-primary" type="button" onclick="performSearch()">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="categories-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-5" data-i18n="browse_categories">Browse by Category</h2>
+        <div class="swiper categories-swiper">
+            <div class="swiper-wrapper" id="categories-container">
+                <!-- Loading placeholder -->
+                <div class="swiper-slide">
+                    <div class="card category-card h-100">
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading categories...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Deals Section -->
+<section class="featured-deals-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5" data-i18n="featured_deals">Featured Deals</h2>
+        <div class="row" id="featured-deals-container">
+            <!-- Loading placeholder -->
+            <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading featured deals...</p>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a href="/pwa/deals/" class="btn btn-primary" data-i18n="view_all_deals">View All Deals</a>
+        </div>
+    </div>
+</section>
+
+<!-- Merchants Map Section -->
+<section class="merchants-map-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-5" data-i18n="find_merchants">Find Merchants Near You</h2>
+        
+        <!-- Map Controls -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="useMyLocation()" data-i18n="use_my_location">
+                        <i class="bi bi-geo-alt"></i> Use My Location
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="updateMap()" data-i18n="update_map">
+                        <i class="bi bi-arrow-clockwise"></i> Update Map
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <select class="form-select" id="radius-filter">
+                    <option value="10">Within 10km</option>
+                    <option value="25" selected>Within 25km</option>
+                    <option value="50">Within 50km</option>
+                    <option value="100">Within 100km</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Map Container -->
+        <div id="merchants-map" style="height: 400px; border-radius: 10px;"></div>
+        
+        <!-- Merchants List -->
+        <div class="row mt-4" id="merchants-list">
+            <!-- Loading placeholder -->
+            <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading merchants...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Advert Section -->
+<section id="advert-section" class="py-5 bg-primary text-white" style="display: none;">
+    <div class="container">
+        <div id="advert-content"></div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('PWA Homepage initializing...');
+    
+    // Show loading screen
+    document.getElementById('loading-screen').style.display = 'flex';
+    
+    try {
+        // Initialize Swiper
+        const categoriesSwiper = new Swiper('.categories-swiper', {
+            slidesPerView: 2,
+            spaceBetween: 20,
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                576: { slidesPerView: 3 },
+                768: { slidesPerView: 4 },
+                992: { slidesPerView: 6 },
+                1200: { slidesPerView: 8 }
+            }
+        });
+        
+        // Load data with error handling
+        await Promise.allSettled([
+            loadCategories(),
+            loadFeaturedDeals(),
+            initializeMap(),
+            loadAdvert()
+        ]);
+        
+        console.log('PWA Homepage initialized successfully');
+    } catch (error) {
+        console.error('Error initializing PWA homepage:', error);
+        showToast('Failed to load some content. Please refresh the page.', 'error');
+    } finally {
+        // Hide loading screen
+        document.getElementById('loading-screen').style.display = 'none';
+    }
+});
+
+// Load categories with better error handling
+async function loadCategories() {
+    try {
+        console.log('Loading categories...');
+        
+        // Check if API is available
+        if (typeof api === 'undefined' || !api.categories) {
+            throw new Error('API not available');
+        }
+        
+        const categories = await api.categories.getAll();
+        
+        const container = document.getElementById('categories-container');
+        container.innerHTML = '';
+        
+        if (categories && categories.length > 0) {
+            categories.forEach(category => {
+                const iconUrl = category.icon || '/static/images/default-category.png';
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                slide.innerHTML = `
+                    <a href="/pwa/category/${category.id}/" class="category-link">
+                        <div class="card category-card h-100">
+                            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                <img src="${iconUrl}" alt="${category.name}" class="category-circle mb-2">
+                                <h5 class="card-title mt-2 text-center">${category.name}</h5>
+                            </div>
+                        </div>
+                    </a>
+                `;
+                container.appendChild(slide);
+            });
+            
+            console.log(`Loaded ${categories.length} categories`);
+        } else {
+            showError('categories-container', 'No categories available');
+        }
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        showError('categories-container', 'Failed to load categories. Please try again later.');
+    }
+}
+
+// Load featured deals with better error handling
+async function loadFeaturedDeals() {
+    try {
+        console.log('Loading featured deals...');
+        
+        // Check if API is available
+        if (typeof api === 'undefined' || !api.deals) {
+            throw new Error('API not available');
+        }
+        
+        const deals = await api.deals.getFeatured();
+        
+        const container = document.getElementById('featured-deals-container');
+        container.innerHTML = '';
+        
+        if (deals && deals.length > 0) {
+            deals.forEach(deal => {
+                const dealCard = createDealCard(deal);
+                container.appendChild(dealCard);
+            });
+            
+            console.log(`Loaded ${deals.length} featured deals`);
+        } else {
+            showError('featured-deals-container', 'No featured deals available');
+        }
+    } catch (error) {
+        console.error('Error loading featured deals:', error);
+        showError('featured-deals-container', 'Failed to load featured deals. Please try again later.');
+    }
+}
+
+// Create deal card
+function createDealCard(deal) {
+    const col = document.createElement('div');
+    col.className = 'col-md-6 col-lg-4 mb-4';
+    
+    const imageUrl = deal.images && deal.images.length > 0 ? deal.images[0].image : '/static/images/default-deal.png';
+    const discount = deal.original_price ? Math.round(((deal.original_price - deal.discount_price) / deal.original_price) * 100) : 0;
+    
+    col.innerHTML = `
+        <div class="card deal-card h-100">
+            <img src="${imageUrl}" class="card-img-top" alt="${deal.title}">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">${deal.title}</h5>
+                <p class="card-text text-truncate-2">${deal.description}</p>
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="deal-price">$${deal.discount_price}</span>
+                        ${deal.original_price ? `<span class="deal-original-price">$${deal.original_price}</span>` : ''}
+                    </div>
+                    ${discount > 0 ? `<span class="badge bg-danger">-${discount}%</span>` : ''}
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="/pwa/deal/${deal.id}/" class="btn btn-outline-primary btn-sm flex-fill" data-i18n="view_deal">View Deal</a>
+                        <button class="btn btn-primary btn-sm" onclick="addToCart(${deal.id})" data-i18n="add_to_cart">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return col;
+}
+
+// Initialize map with error handling
+async function initializeMap() {
+    try {
+        console.log('Initializing map...');
+        
+        // Initialize Leaflet map
+        const map = L.map('merchants-map').setView([0, 0], 10);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Store map reference
+        window.merchantsMap = map;
+        
+        // Try to get user location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const { latitude, longitude } = position.coords;
+                    map.setView([latitude, longitude], 12);
+                    loadNearbyMerchants(latitude, longitude);
+                },
+                error => {
+                    console.log('Geolocation failed:', error);
+                    // Load merchants without location
+                    loadMerchants();
+                }
+            );
+        } else {
+            console.log('Geolocation not supported');
+            loadMerchants();
+        }
+        
+    } catch (error) {
+        console.error('Error initializing map:', error);
+        showError('merchants-list', 'Failed to load map. Please try again later.');
+    }
+}
+
+// Load nearby merchants
+async function loadNearbyMerchants(lat, lng, radius = 50) {
+    try {
+        console.log(`Loading merchants near ${lat}, ${lng} within ${radius}km`);
+        
+        if (typeof api === 'undefined' || !api.merchants) {
+            throw new Error('API not available');
+        }
+        
+        const merchants = await api.merchants.getNearby(lat, lng, radius);
+        
+        displayMerchantsOnMap(merchants);
+        displayMerchantsList(merchants);
+        
+    } catch (error) {
+        console.error('Error loading nearby merchants:', error);
+        // Fallback to regular merchants
+        loadMerchants();
+    }
+}
+
+// Load all merchants
+async function loadMerchants() {
+    try {
+        console.log('Loading all merchants...');
+        
+        if (typeof api === 'undefined' || !api.merchants) {
+            throw new Error('API not available');
+        }
+        
+        const merchants = await api.merchants.getAll();
+        
+        displayMerchantsOnMap(merchants);
+        displayMerchantsList(merchants);
+        
+    } catch (error) {
+        console.error('Error loading merchants:', error);
+        showError('merchants-list', 'Failed to load merchants. Please try again later.');
+    }
+}
+
+// Display merchants on map
+function displayMerchantsOnMap(merchants) {
+    if (!window.merchantsMap) return;
+    
+    // Clear existing markers
+    if (window.merchantMarkers) {
+        window.merchantMarkers.forEach(marker => marker.remove());
+    }
+    window.merchantMarkers = [];
+    
+    if (merchants && merchants.length > 0) {
+        merchants.forEach(merchant => {
+            if (merchant.branches && merchant.branches.length > 0) {
+                merchant.branches.forEach(branch => {
+                    if (branch.latitude && branch.longitude) {
+                        const marker = L.marker([parseFloat(branch.latitude), parseFloat(branch.longitude)])
+                            .bindPopup(`
+                                <div class="merchant-popup">
+                                    <h6>${merchant.name}</h6>
+                                    <p>${branch.name}</p>
+                                    <p><small>${branch.address_text}</small></p>
+                                    <a href="/pwa/merchant/${merchant.id}/" class="btn btn-sm btn-primary">View Details</a>
+                                </div>
+                            `)
+                            .addTo(window.merchantsMap);
+                        
+                        window.merchantMarkers.push(marker);
+                    }
+                });
+            }
+        });
+    }
+}
+
+// Display merchants list
+function displayMerchantsList(merchants) {
+    const container = document.getElementById('merchants-list');
+    container.innerHTML = '';
+    
+    if (merchants && merchants.length > 0) {
+        merchants.forEach(merchant => {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4 mb-4';
+            
+            const logoUrl = merchant.logo || '/static/images/default-merchant.png';
+            
+            col.innerHTML = `
+                <div class="card merchant-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="${logoUrl}" alt="${merchant.name}" class="merchant-logo me-3">
+                            <div>
+                                <h5 class="card-title mb-1">${merchant.name}</h5>
+                                <div class="merchant-rating">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star"></i>
+                                    <span class="ms-1">4.0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text text-truncate-2">${merchant.description || 'No description available'}</p>
+                        <div class="d-flex gap-2">
+                            <a href="/pwa/merchant/${merchant.id}/" class="btn btn-outline-primary btn-sm flex-fill" data-i18n="view_details">View Details</a>
+                            <button class="btn btn-primary btn-sm" onclick="getDirections(${merchant.id})" data-i18n="get_directions">Directions</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(col);
+        });
+    } else {
+        showError('merchants-list', 'No merchants found');
+    }
+}
+
+// Load advert
+async function loadAdvert() {
+    try {
+        console.log('Loading advert...');
+        
+        if (typeof api === 'undefined') {
+            throw new Error('API not available');
+        }
+        
+        const response = await fetch('/pwa/api/advert/?page=home');
+        if (response.ok) {
+            const advert = await response.json();
+            displayAdvert(advert);
+        }
+    } catch (error) {
+        console.error('Error loading advert:', error);
+        // Hide advert section if failed
+        document.getElementById('advert-section').style.display = 'none';
+    }
+}
+
+// Display advert
+function displayAdvert(advert) {
+    const section = document.getElementById('advert-section');
+    const content = document.getElementById('advert-content');
+    
+    if (!advert || (!advert.images && !advert.videos)) {
+        section.style.display = 'none';
+        return;
+    }
+    
+    if (advert.images && advert.images.length > 0) {
+        content.innerHTML = `
+            <div id="advert-carousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    ${advert.images.map((image, index) => `
+                        <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                            <img src="${image.image}" class="d-block w-100" alt="Advertisement">
+                        </div>
+                    `).join('')}
+                </div>
+                ${advert.images.length > 1 ? `
+                    <button class="carousel-control-prev" type="button" data-bs-target="#advert-carousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#advert-carousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    } else if (advert.videos && advert.videos.length > 0) {
+        content.innerHTML = `
+            <video class="w-100" controls>
+                <source src="${advert.videos[0].video}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        `;
+    }
+    
+    section.style.display = 'block';
+}
+
+// Utility functions
+function useMyLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const { latitude, longitude } = position.coords;
+                const radius = document.getElementById('radius-filter').value;
+                loadNearbyMerchants(latitude, longitude, radius);
+            },
+            error => {
+                console.error('Geolocation error:', error);
+                showToast('Unable to get your location', 'error');
+            }
+        );
+    } else {
+        showToast('Geolocation not supported', 'error');
+    }
+}
+
+function updateMap() {
+    if (window.merchantsMap) {
+        window.merchantsMap.invalidateSize();
+    }
+}
+
+function performSearch() {
+    const query = document.getElementById('search-input').value.trim();
+    if (query) {
+        window.location.href = `/pwa/search/?q=${encodeURIComponent(query)}`;
+    }
+}
+
+function addToCart(dealId) {
+    if (typeof api === 'undefined' || !api.cart) {
+        showToast('Cart functionality not available', 'error');
+        return;
+    }
+    
+    api.cart.add(dealId, 1).then(() => {
+        showToast('Added to cart successfully', 'success');
+        updateCartCount();
+    }).catch(error => {
+        console.error('Error adding to cart:', error);
+        showToast('Failed to add to cart', 'error');
+    });
+}
+
+function getDirections(merchantId) {
+    // Implementation for getting directions
+    console.log('Getting directions for merchant:', merchantId);
+}
+
+function updateCartCount() {
+    if (typeof api === 'undefined' || !api.cart) {
+        return;
+    }
+    
+    api.cart.get().then(cart => {
+        const count = cart.items ? cart.items.length : 0;
+        const cartCountElement = document.getElementById('cart-count');
+        if (cartCountElement) {
+            cartCountElement.textContent = count;
+        }
+    }).catch(error => {
+        console.error('Error updating cart count:', error);
+    });
+}
+
+function showError(containerId, message) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = `
+            <div class="col-12 text-center text-muted">
+                <i class="bi bi-exclamation-triangle display-4"></i>
+                <p class="mt-2">${message}</p>
+            </div>
+        `;
+    }
+}
+
+function showToast(message, type = 'info') {
+    // Simple toast implementation
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Initialize cart count
+updateCartCount();
+</script>
+{% endblock %} 

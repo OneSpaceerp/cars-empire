@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shopping Cart - Cars Empire{% endblock %}
+
+{% block content %}
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+<div class="container">
+    <h1 class="mb-4">Shopping Cart</h1>
+    <div id="cart-content">
+        <div class="alert alert-info" role="alert">
+            Loading your cart...
+        </div>
+    </div>
+</div>
+<script>
+// Helper: Get JWT token from localStorage
+function getToken() {
+    return localStorage.getItem('auth_token') || localStorage.getItem('access') || localStorage.getItem('token');
+}
+
+let currentCartId = null;
+
+function renderCart(cart) {
+    currentCartId = cart.id;
+    const cartContent = document.getElementById('cart-content');
+    if (!cart.items || cart.items.length === 0) {
+        cartContent.innerHTML = `<div class="alert alert-info" role="alert">
+            Your cart is currently empty. <a href="/" class="alert-link">Browse deals</a>.
+        </div>`;
+        return;
+    }
+    let itemsHtml = '';
+    cart.items.forEach(item => {
+        itemsHtml += `
+        <div class="card mb-3" data-item-id="${item.id}">
+            <div class="row g-0">
+                <div class="col-md-2 d-flex align-items-center justify-content-center">
+                    <img src="https://via.placeholder.com/100x70.png?text=Deal+Thumb" class="img-fluid rounded-start p-2" alt="Deal Thumbnail">
+                </div>
+                <div class="col-md-7">
+                    <div class="card-body">
+                        <h5 class="card-title">${item.deal_id || 'Deal'}</h5>
+                        <p class="card-text"><small class="text-muted">Merchant: ${item.merchant?.name || ''}</small></p>
+                        <div class="input-group mb-2" style="max-width: 140px;">
+                            <input type="number" class="form-control form-control-sm quantity-input" min="1" value="${item.quantity}" data-item-id="${item.id}">
+                            <button class="btn btn-outline-secondary btn-sm update-qty-btn" data-item-id="${item.id}">Update</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex flex-column justify-content-center align-items-end p-3">
+                    <p class="fw-bold mb-1">EGP ${item.total_price || ''}</p>
+                    <button class="btn btn-sm btn-outline-danger mt-2 remove-btn" data-item-id="${item.id}">Remove</button>
+                </div>
+            </div>
+        </div>`;
+    });
+    cartContent.innerHTML = `
+    <div class="row">
+        <div class="col-lg-8">${itemsHtml}</div>
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Order Summary</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Subtotal
+                            <span>EGP ${cart.total_price || '0.00'}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
+                            Total
+                            <span>EGP ${cart.total_price || '0.00'}</span>
+                        </li>
+                    </ul>
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="/checkout/" class="btn btn-primary btn-lg">Proceed to Checkout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    // Attach event listeners for remove and update buttons
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            removeCartItem(this.dataset.itemId);
+        });
+    });
+    document.querySelectorAll('.update-qty-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            const qtyInput = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+            const newQty = qtyInput.value;
+            updateCartItemQuantity(itemId, newQty);
+        });
+    });
+}
+
+function fetchCart() {
+    const token = getToken();
+    fetch('/api/cart/', {
+        headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch cart');
+        return res.json();
+    })
+    .then(data => {
+        renderCart(data[0] || data); // If API returns a list, use first cart
+    })
+    .catch(err => {
+        document.getElementById('cart-content').innerHTML = `<div class='alert alert-danger'>Could not load cart. Please try again later.</div>`;
+    });
+}
+
+function removeCartItem(itemId) {
+    const token = getToken();
+    fetch(`/api/cart/${currentCartId}/remove_item/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ item_id: itemId })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Failed to remove item');
+        fetchCart();
+    })
+    .catch(err => {
+        alert('Failed to remove item.');
+    });
+}
+
+function updateCartItemQuantity(itemId, quantity) {
+    const token = getToken();
+    fetch(`/api/cart/${currentCartId}/update_quantity/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ item_id: itemId, quantity: quantity })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Failed to update quantity');
+        fetchCart();
+    })
+    .catch(err => {
+        alert('Failed to update quantity.');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', fetchCart);
+</script>
+{% endblock %}
+

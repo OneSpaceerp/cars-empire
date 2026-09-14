@@ -1,0 +1,438 @@
+5. API Contract
+Base URL: https://api.carsempire.example/v1 (placeholder). JSON over HTTPS. All mutation endpoints must support idempotency where a duplicate request could create money, inventory, a booking or a voucher.
+5.1 Conventions
+Authorization: Bearer <access_token>
+Content-Type: application/json
+Idempotency-Key: <uuid>
+X-Request-Id: <uuid>
+Accept-Language: en-EG or ar-EG
+HTTP
+Meaning
+200
+Success
+201
+Created
+202
+Accepted / async
+204
+Success without body
+400
+Validation error
+401
+Unauthenticated
+403
+Forbidden
+404
+Not found
+409
+State conflict / duplicate
+422
+Business rule violation
+429
+Rate limit
+500
+Unexpected server error
+5.2 Auth
+Method
+Path
+Purpose
+POST
+/auth/register
+Register consumer
+POST
+/auth/send-otp
+Send OTP
+POST
+/auth/verify-otp
+Verify OTP and issue tokens
+POST
+/auth/login
+Login
+POST
+/auth/refresh
+Refresh access token
+POST
+/auth/logout
+Invalidate session
+5.3 Consumer / Profile
+Method
+Path
+Purpose
+GET
+/me
+Current user
+PATCH
+/me
+Update profile
+GET
+/me/vehicles
+List vehicles
+POST
+/me/vehicles
+Create vehicle
+GET
+/me/vehicles/{vehicleId}
+Get vehicle
+PATCH
+/me/vehicles/{vehicleId}
+Update vehicle
+DELETE
+/me/vehicles/{vehicleId}
+Archive vehicle
+GET
+/me/addresses
+List addresses
+POST
+/me/addresses
+Create address
+5.4 Discovery
+Method
+Path
+Purpose
+GET
+/home
+Personalized home
+GET
+/categories
+Categories
+GET
+/merchants
+Merchant search
+GET
+/merchants/{merchantId}
+Merchant detail
+GET
+/branches/{branchId}
+Branch detail
+GET
+/offers
+Offer feed
+GET
+/offers/{offerId}
+Offer detail
+GET
+/search
+Search all
+GET
+/nearby
+Nearby merchants/offers
+GET
+/recommendations
+Personalized recommendations
+5.5 Booking / Availability
+Method
+Path
+Purpose
+GET
+/offers/{offerId}/availability
+Available slots
+POST
+/booking-holds
+Hold a slot
+DELETE
+/booking-holds/{holdId}
+Release hold
+5.6 Cart / Checkout
+Method
+Path
+Purpose
+GET
+/cart
+Get active cart
+POST
+/cart/items
+Add item
+PATCH
+/cart/items/{itemId}
+Change quantity/vehicle/slot
+DELETE
+/cart/items/{itemId}
+Remove item
+POST
+/checkout/quote
+Price validation and quote
+POST
+/checkout/orders
+Create order
+GET
+/orders/{orderId}
+Order detail
+GET
+/me/orders
+Order list
+5.7 Payments
+Method
+Path
+Purpose
+POST
+/payments
+Create payment attempt
+GET
+/payments/{paymentId}
+Payment status
+POST
+/payments/{paymentId}/confirm
+Confirm if provider requires
+POST
+/payments/{paymentId}/refund
+Request refund
+POST
+/webhooks/payments/{provider}
+Provider webhook
+5.8 Vouchers / Redemption
+Method
+Path
+Purpose
+GET
+/vouchers/{voucherId}
+Voucher detail
+POST
+/redemption/validate
+Validate voucher
+POST
+/redemption/redeem
+Redeem voucher
+POST
+/redemption/reverse
+Reverse redemption with elevated permission
+5.9 Work Orders
+Method
+Path
+Purpose
+POST
+/merchant/work-orders
+Create work order
+GET
+/merchant/work-orders
+List work orders
+GET
+/merchant/work-orders/{id}
+Get work order
+PATCH
+/merchant/work-orders/{id}
+Update work order
+POST
+/merchant/work-orders/{id}/addons
+Propose add-on
+POST
+/merchant/work-orders/{id}/addons/{addonId}/approve
+Customer approval path
+POST
+/merchant/work-orders/{id}/complete
+Complete work order
+5.10 Reviews / Support
+Method
+Path
+Purpose
+POST
+/reviews
+Create review
+GET
+/offers/{offerId}/reviews
+Offer reviews
+POST
+/support/tickets
+Create ticket
+GET
+/support/tickets
+List tickets
+GET
+/support/tickets/{id}
+Get ticket
+POST
+/support/tickets/{id}/messages
+Add message
+5.11 Merchant
+Method
+Path
+Purpose
+POST
+/merchant/applications
+Apply as merchant
+GET
+/merchant/dashboard
+Dashboard
+GET
+/merchant/offers
+Offer list
+POST
+/merchant/offers
+Create offer
+PATCH
+/merchant/offers/{id}
+Edit offer
+POST
+/merchant/offers/{id}/submit
+Submit for review
+GET
+/merchant/branches
+List branches
+POST
+/merchant/branches
+Create branch
+GET
+/merchant/bookings
+Booking queue
+GET
+/merchant/settlements
+Settlement list
+5.12 Admin
+Method
+Path
+Purpose
+GET
+/admin/dashboard
+Executive KPIs
+GET
+/admin/merchants
+Merchant queue
+POST
+/admin/merchants/{id}/approve
+Approve merchant
+POST
+/admin/offers/{id}/approve
+Approve offer
+POST
+/admin/offers/{id}/reject
+Reject offer
+GET
+/admin/orders
+Search orders
+POST
+/admin/orders/{id}/refund
+Refund order
+GET
+/admin/audit-logs
+Audit logs
+5.13 Representative Request / Response Contracts
+Create Vehicle — POST /me/vehicles
+Request
+{
+  "license_plate": "ABC-1234",
+  "make_id": "uuid",
+  "model_id": "uuid",
+  "trim_id": "uuid",
+  "year": 2022,
+  "mileage_km": 68400,
+  "fuel_type": "petrol",
+  "is_primary": true
+}
+Response 201
+{
+  "id": "uuid",
+  "license_plate": "ABC-1234",
+  "vehicle": { "make": "Toyota", "model": "Corolla", "year": 2022 },
+  "mileage_km": 68400,
+  "is_primary": true
+}
+Get Offer Detail — GET /offers/{offerId}
+Response 200
+{
+  "id": "uuid",
+  "title": "Full Synthetic Oil Change",
+  "merchant": {"id":"uuid","name":"Example Auto Care","rating":4.7},
+  "price": {"currency":"EGP","sale":799,"compare_at":1150,"saving":351,"discount_pct":30.52},
+  "service": {"id":"uuid","duration_min":60},
+  "booking": {"required":true,"mobile_service":false},
+  "eligibility": {"vehicle_types":["sedan","suv"]},
+  "branches": [{"id":"uuid","name":"Maadi","distance_km":2.4}],
+  "terms":["By appointment","One redemption per vehicle"]
+}
+Checkout Quote — POST /checkout/quote
+Request
+{
+  "items":[{
+    "offer_id":"uuid",
+    "quantity":1,
+    "vehicle_id":"uuid",
+    "branch_id":"uuid",
+    "slot_id":"uuid"
+  }],
+  "promo_code":"WELCOME10",
+  "wallet_amount":50
+}
+Response 200
+{
+  "quote_id":"uuid",
+  "expires_at":"2026-09-14T22:45:00Z",
+  "subtotal":799,
+  "discount":80,
+  "fees":10,
+  "wallet":50,
+  "total":679,
+  "currency":"EGP"
+}
+Create Order — POST /checkout/orders
+Request
+{
+  "quote_id":"uuid",
+  "payment_method_id":"pm_uuid",
+  "accept_terms":true,
+  "idempotency_key":"uuid"
+}
+Response 201
+{
+  "order_id":"uuid",
+  "order_number":"CE-20260914-00128",
+  "status":"pending_payment",
+  "payment": {"payment_id":"uuid","status":"pending"},
+  "booking": {"status":"held","slot_id":"uuid"}
+}
+Validate Voucher — POST /redemption/validate
+Request
+{
+  "token":"opaque-token",
+  "branch_id":"uuid"
+}
+Response 200
+{
+  "valid":true,
+  "voucher_id":"uuid",
+  "offer":{"title":"Full Synthetic Oil Change"},
+  "vehicle":{"make":"Toyota","model":"Corolla","plate":"ABC-1234"},
+  "booking":{"starts_at":"2026-09-15T10:00:00+03:00"},
+  "warnings":[]
+}
+Redeem Voucher — POST /redemption/redeem
+Request
+{ "voucher_id":"uuid", "branch_id":"uuid", "confirmation":true }
+Response 200
+{
+  "redemption_id":"uuid",
+  "status":"redeemed",
+  "redeemed_at":"2026-09-15T10:02:17+03:00",
+  "work_order_id":"uuid"
+}
+Generic Error Envelope
+{
+  "error": {
+    "code":"VOUCHER_EXPIRED",
+    "message":"This service voucher is no longer valid.",
+    "details": {"valid_until":"2026-09-10T23:59:59Z"},
+    "request_id":"req_uuid"
+  }
+}
+5.14 Advertising APIs
+GET    /v1/ad-slots/{slot_key}/decision
+POST   /v1/merchant/advertising/campaigns
+GET    /v1/merchant/advertising/campaigns
+GET    /v1/merchant/advertising/campaigns/{id}
+PATCH  /v1/merchant/advertising/campaigns/{id}
+POST   /v1/merchant/advertising/campaigns/{id}/submit
+POST   /v1/merchant/advertising/campaigns/{id}/pause
+POST   /v1/merchant/advertising/campaigns/{id}/resume
+POST   /v1/merchant/advertising/campaigns/{id}/creatives
+GET    /v1/merchant/advertising/campaigns/{id}/performance
+POST   /v1/admin/advertising/campaigns/{id}/approve
+POST   /v1/admin/advertising/campaigns/{id}/reject
+GET    /v1/admin/advertising/inventory/calendar
+GET    /v1/admin/advertising/reports
+Consumer ad decision request:
+GET /v1/ad-slots/GLOBAL_TOP_BANNER/decision?platform=ios&locale=ar-EG&city_id=1&page_type=home&vehicle_id=123
+Successful response when an ad exists:
+{  "slot": "GLOBAL_TOP_BANNER",  "ad": {    "campaign_id": "AD-1044",    "creative_id": "CRT-88",    "merchant_id": "M-781",    "sponsor_name": "Empire Auto Care",    "headline": "30% Off Full Car Detailing",    "image_url": "https://cdn.example.com/ads/AD-1044-mobile.webp",    "cta_label": "Book Now",    "destination": {"type":"offer","id":"OFF-8891"},    "tracking": {"impression_id":"IMP-9c31"}  }}
+No-ad response:
+{  "slot": "GLOBAL_TOP_BANNER",  "ad": null}
+Merchant campaign creation request:
+POST /v1/merchant/advertising/campaigns{  "name": "October AC Campaign",  "slot_key": "GLOBAL_TOP_BANNER",  "pricing_model": "FIXED_CAMPAIGN",  "start_at": "2026-10-01T00:00:00+03:00",  "end_at": "2026-10-31T23:59:59+03:00",  "budget": 25000,  "priority_tier": "FEATURED",  "destination": {"type":"offer","id":"OFF-8891"},  "targets": {"city_ids":[1],"category_ids":[4],"audience_segment":"ALL_ELIGIBLE"}}
+201 Created{  "id": "AD-1044",  "status": "DRAFT",  "payment_status": "UNPAID",  "approval_status": "DRAFT"}

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Cars Empire</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .offline-container {
+            text-align: center;
+            color: white;
+            max-width: 500px;
+            padding: 2rem;
+        }
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        .offline-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .offline-message {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .offline-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-offline {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .btn-offline:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .cached-content {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .cached-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .cached-item:last-child {
+            border-bottom: none;
+        }
+        .cached-item i {
+            margin-right: 0.75rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            <i class="bi bi-wifi-off"></i>
+        </div>
+        <h1 class="offline-title">You're Offline</h1>
+        <p class="offline-message">
+            Don't worry! You can still browse some content that was previously loaded.
+        </p>
+        
+        <div class="offline-actions">
+            <a href="/" class="btn-offline">
+                <i class="bi bi-house me-2"></i>Go Home
+            </a>
+            <button onclick="window.location.reload()" class="btn-offline">
+                <i class="bi bi-arrow-clockwise me-2"></i>Try Again
+            </button>
+            <button onclick="checkConnection()" class="btn-offline">
+                <i class="bi bi-wifi me-2"></i>Check Connection
+            </button>
+        </div>
+
+        <div class="cached-content">
+            <h5 class="mb-3">
+                <i class="bi bi-download me-2"></i>Available Offline
+            </h5>
+            <div class="cached-item">
+                <i class="bi bi-house"></i>
+                <span>Home Page</span>
+            </div>
+            <div class="cached-item">
+                <i class="bi bi-tag"></i>
+                <span>Featured Deals</span>
+            </div>
+            <div class="cached-item">
+                <i class="bi bi-geo-alt"></i>
+                <span>Merchant Map</span>
+            </div>
+            <div class="cached-item">
+                <i class="bi bi-person"></i>
+                <span>User Profile</span>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <small class="opacity-75">
+                <i class="bi bi-info-circle me-1"></i>
+                Some features may be limited while offline
+            </small>
+        </div>
+    </div>
+
+    <script>
+        function checkConnection() {
+            if (navigator.onLine) {
+                window.location.reload();
+            } else {
+                alert('Still offline. Please check your internet connection.');
+            }
+        }
+
+        // Listen for online event
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+
+        // Auto-check connection every 5 seconds
+        setInterval(() => {
+            if (navigator.onLine) {
+                window.location.reload();
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

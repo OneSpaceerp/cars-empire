@@ -1,0 +1,10 @@
+django
+djangorestframework
+django-cors-headers
+Pillow
+numpy
+gdal
+psycopg2-binary # For PostgreSQL (if used, otherwise remove)
+mysqlclient # For MySQL/MariaDB (common on cPanel)
+gunicorn # WSGI server
+

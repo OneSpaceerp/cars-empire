@@ -1,0 +1,183 @@
+{% extends 'profile_base.html' %}
+{% load static %}
+
+{% block title %}My Coupons - My Profile - Cars Empire{% endblock %}
+
+{% block profile_content %}
+    <h4>My Coupons</h4>
+    <hr>
+
+    <div class="mb-3">
+        <div class="input-group">
+            <input type="text" class="form-control" id="couponCode" placeholder="Enter coupon code">
+            <button class="btn btn-primary" type="button" id="redeemCouponBtn">Redeem Coupon</button>
+        </div>
+    </div>
+    
+    <div id="coupons-list" class="row">
+        <!-- Coupons will be loaded here -->
+    </div>
+
+    <!-- Coupon Details Modal -->
+    <div class="modal fade" id="couponDetailsModal" tabindex="-1" aria-labelledby="couponDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="couponDetailsModalLabel">Coupon Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="coupon-details-content">
+                    <!-- Coupon details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+async function initializeProfileContent(profile) {
+    await loadCoupons();
+    setupEventListeners();
+}
+
+async function loadCoupons() {
+    try {
+        const coupons = await api.coupons.getAll();
+        const couponsList = document.getElementById('coupons-list');
+        couponsList.innerHTML = '';
+        
+        if (coupons.length === 0) {
+            couponsList.innerHTML = '<div class="col-12"><div class="alert alert-info">No coupons available.</div></div>';
+            return;
+        }
+        
+        coupons.forEach(coupon => {
+            const couponCard = createCouponCard(coupon);
+            couponsList.appendChild(couponCard);
+        });
+    } catch (error) {
+        console.error('Failed to load coupons:', error);
+        showError('Failed to load coupons');
+    }
+}
+
+function createCouponCard(coupon) {
+    const col = document.createElement('div');
+    col.className = 'col-md-6 col-lg-4 mb-3';
+    
+    const isExpired = new Date(coupon.end_date) < new Date();
+    const isUsed = coupon.status === 'used';
+    const statusClass = isExpired ? 'danger' : (isUsed ? 'secondary' : 'success');
+    const statusText = isExpired ? 'Expired' : (isUsed ? 'Used' : 'Valid');
+    
+    col.innerHTML = `
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">${coupon.deal.title}</h5>
+                <img src="${coupon.qr_code}" alt="Coupon QR Code" style="width: 100px; height: 100px; display: block; margin: 0 auto 10px auto;"/>
+                <p class="card-text">
+                    <strong>Merchant:</strong> ${coupon.deal.merchant.name}<br>
+                    <strong>Discount:</strong> ${coupon.discount_type === 'percentage' ? coupon.discount_value + '%' : 'EGP ' + coupon.discount_value}<br>
+                    <strong>Expires:</strong> ${coupon.end_date ? new Date(coupon.end_date).toLocaleDateString() : 'No Expiry'}<br>
+                    <strong>Status:</strong> <span class="badge bg-${statusClass}">${statusText}</span>
+                </p>
+                ${!isExpired && !isUsed ? `
+                    <button class="btn btn-primary view-coupon" data-id="${coupon.id}">View Details</button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    return col;
+}
+
+async function loadCouponDetails(couponId) {
+    try {
+        const coupon = await api.coupons.getById(couponId);
+        const modalContent = document.getElementById('coupon-details-content');
+        
+        modalContent.innerHTML = `
+            <div class="text-center mb-4">
+                <h4 class="mb-3">${coupon.deal.title}</h4>
+                <div class="coupon-code p-3 bg-light rounded">
+                    <h5 class="mb-0">${coupon.coupon_code}</h5>
+                </div>
+                <img src="${coupon.qr_code}" alt="Coupon QR Code" style="width: 140px; height: 140px; margin: 20px auto; display: block;"/>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Coupon Information</h6>
+                    <p><strong>Merchant:</strong> ${coupon.deal.merchant.name}</p>
+                    <p><strong>Discount:</strong> ${coupon.discount_type === 'percentage' ? coupon.discount_value + '%' : 'EGP ' + coupon.discount_value}</p>
+                    <p><strong>Valid Until:</strong> ${coupon.end_date ? new Date(coupon.end_date).toLocaleString() : 'No Expiry'}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-${getStatusBadgeClass(coupon.status)}">${coupon.status}</span></p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Terms & Conditions</h6>
+                    <ul class="list-unstyled">
+                        ${(Array.isArray(coupon.terms_and_conditions) ? coupon.terms_and_conditions : []).map(term => `<li>• ${term}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        `;
+        
+        const modal = new bootstrap.Modal(document.getElementById('couponDetailsModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Failed to load coupon details:', error);
+        showError('Failed to load coupon details');
+    }
+}
+
+function getStatusBadgeClass(status) {
+    switch (status.toLowerCase()) {
+        case 'valid':
+            return 'success';
+        case 'used':
+            return 'secondary';
+        case 'expired':
+            return 'danger';
+        default:
+            return 'secondary';
+    }
+}
+
+function setupEventListeners() {
+    // Redeem coupon button
+    const redeemBtn = document.getElementById('redeemCouponBtn');
+    redeemBtn.addEventListener('click', async () => {
+        const codeInput = document.getElementById('couponCode');
+        const code = codeInput.value.trim();
+        
+        if (!code) {
+            showError('Please enter a coupon code');
+            return;
+        }
+        
+        try {
+            await api.coupons.redeem(code);
+            codeInput.value = '';
+            await loadCoupons();
+            showSuccess('Coupon redeemed successfully!');
+        } catch (error) {
+            console.error('Failed to redeem coupon:', error);
+            showError(error.message || 'Failed to redeem coupon');
+        }
+    });
+    
+    // View coupon details
+    document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('view-coupon')) {
+            const couponId = e.target.dataset.id;
+            await loadCouponDetails(couponId);
+        }
+    });
+}
+</script>
+{% endblock %}
+

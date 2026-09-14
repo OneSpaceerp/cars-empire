@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarsEmpire - Deal Details</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0041ff">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        
+        .pwa-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .top-nav {
+            background-color: white;
+            padding: 10px 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .back-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            color: #333;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #0041ff;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .logo img {
+            margin-right: 8px;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 0;
+        }
+        
+        .deal-image {
+            width: 100%;
+            height: 250px;
+            background: #f4f4f4;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        
+        .deal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            margin-top: -20px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .deal-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .deal-merchant {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        
+        .deal-rating {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .rating-stars {
+            color: #ffcb0f;
+            margin-right: 8px;
+        }
+        
+        .rating-value {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .deal-price-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .price-info {
+            flex: 1;
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .current-price {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #0041ff;
+            margin-bottom: 5px;
+        }
+        
+        .discount-badge {
+            background: #ffcb0f;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .deal-description {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .deal-features {
+            margin-bottom: 20px;
+        }
+        
+        .features-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .feature-list {
+            list-style: none;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .feature-icon {
+            color: #0041ff;
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .merchant-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .merchant-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .merchant-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .merchant-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #0041ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .merchant-text {
+            flex: 1;
+        }
+        
+        .merchant-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .merchant-location {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .purchase-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .purchase-btn {
+            width: 100%;
+            padding: 15px;
+            background: #0041ff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .purchase-btn:hover {
+            background: #0033cc;
+        }
+        
+        .purchase-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1em;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #0041ff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
+        }
+        
+        .payment-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .payment-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .payment-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .payment-amount {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #0041ff;
+            margin-bottom: 20px;
+        }
+        
+        .payment-btn {
+            width: 100%;
+            padding: 12px;
+            background: #0041ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        
+        .cancel-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f4f4f4;
+            color: #666;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="pwa-container">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="nav-container">
+                <button class="back-btn" onclick="window.history.back()">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                
+                <a href="./index.html" class="logo">
+                    <img src="./logo.png" alt="CarsEmpire Logo" width="30" height="30" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                    </svg>
+                    <span>CarsEmpire</span>
+                </a>
+                
+                <div style="width: 40px;"></div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div id="dealContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading deal details...
+                </div>
+            </div>
+        </main>
+
+        <!-- Purchase Section -->
+        <div class="purchase-section" id="purchaseSection" style="display: none;">
+            <button class="purchase-btn" onclick="showPaymentModal()">
+                Purchase Deal
+            </button>
+        </div>
+
+        <!-- Payment Modal -->
+        <div id="paymentModal" class="payment-modal">
+            <div class="payment-content">
+                <span class="close-modal" onclick="closePaymentModal()">&times;</span>
+                <div class="payment-title">Complete Purchase</div>
+                <div class="payment-amount" id="paymentAmount">$0</div>
+                <p style="color: #666; margin-bottom: 20px;">
+                    You will be redirected to PayMob for secure payment processing.
+                </p>
+                <button class="payment-btn" onclick="processPayment()">
+                    Pay with PayMob
+                </button>
+                <button class="cancel-btn" onclick="closePaymentModal()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = 'https://carsempire.net/api';
+        let currentDeal = null;
+        
+        // Get deal ID from URL
+        function getDealId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+        
+        // API Helper Functions
+        async function fetchAPI(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return null;
+            }
+        }
+        
+        // Load deal details
+        async function loadDealDetails() {
+            const dealId = getDealId();
+            if (!dealId) {
+                showError('Deal ID not found');
+                return;
+            }
+            
+            try {
+                const dealData = await fetchAPI(`/deals/deals/${dealId}/`);
+                if (dealData) {
+                    currentDeal = dealData;
+                    displayDealDetails(dealData);
+                } else {
+                    showError('Deal not found');
+                }
+            } catch (error) {
+                console.error('Error loading deal:', error);
+                showError('Failed to load deal details');
+            }
+        }
+        
+        // Display deal details
+        function displayDealDetails(deal) {
+            const dealContainer = document.getElementById('dealContainer');
+            const purchaseSection = document.getElementById('purchaseSection');
+            
+            const discountPercentage = Math.round(((deal.original_price - deal.discount_price) / deal.original_price) * 100);
+            
+            dealContainer.innerHTML = `
+                <div class="deal-image" style="background-image: url('${deal.images?.[0]?.image || ''}'); background-size: cover; background-position: center;">
+                    ${!deal.images?.[0]?.image ? 'Deal Image' : ''}
+                </div>
+                
+                <div class="deal-content">
+                    <h1 class="deal-title">${deal.title}</h1>
+                    <div class="deal-merchant">${deal.merchant?.name || 'Merchant'}</div>
+                    
+                    <div class="deal-rating">
+                        <span class="rating-stars">★★★★☆</span>
+                        <span class="rating-value">4.5 (128 reviews)</span>
+                    </div>
+                    
+                    <div class="deal-price-section">
+                        <div class="price-info">
+                            <div class="original-price">$${deal.original_price}</div>
+                            <div class="current-price">$${deal.discount_price}</div>
+                            <div class="discount-badge">${discountPercentage}% OFF</div>
+                        </div>
+                    </div>
+                    
+                    <div class="deal-description">
+                        ${deal.description}
+                    </div>
+                    
+                    <div class="deal-features">
+                        <div class="features-title">What's Included:</div>
+                        <ul class="feature-list">
+                            <li class="feature-item">
+                                <svg class="feature-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Professional service
+                            </li>
+                            <li class="feature-item">
+                                <svg class="feature-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Quality guarantee
+                            </li>
+                            <li class="feature-item">
+                                <svg class="feature-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Valid for 30 days
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="merchant-info">
+                        <div class="merchant-title">About the Merchant</div>
+                        <div class="merchant-details">
+                            <div class="merchant-avatar">${(deal.merchant?.name || 'M')[0].toUpperCase()}</div>
+                            <div class="merchant-text">
+                                <div class="merchant-name">${deal.merchant?.name || 'Merchant'}</div>
+                                <div class="merchant-location">📍 ${deal.merchant?.address || 'Location not specified'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            purchaseSection.style.display = 'block';
+        }
+        
+        function showError(message) {
+            const dealContainer = document.getElementById('dealContainer');
+            dealContainer.innerHTML = `
+                <div class="error">
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+        
+        // Payment functions
+        function showPaymentModal() {
+            // Check if user is logged in
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = './auth.html';
+                return;
+            }
+            
+            document.getElementById('paymentAmount').textContent = `$${currentDeal.discount_price}`;
+            document.getElementById('paymentModal').style.display = 'block';
+        }
+        
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+        
+        async function processPayment() {
+            if (!currentDeal) return;
+            
+            try {
+                // Create payment session with PayMob
+                const paymentData = await fetchAPI('/payments/create-session/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: JSON.stringify({
+                        deal_id: currentDeal.id,
+                        amount: currentDeal.discount_price
+                    })
+                });
+                
+                if (paymentData && paymentData.payment_url) {
+                    // Redirect to PayMob payment page
+                    window.location.href = paymentData.payment_url;
+                } else {
+                    alert('Payment initialization failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Payment failed. Please try again.');
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('paymentModal');
+            if (event.target === modal) {
+                closePaymentModal();
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDealDetails();
+        });
+    </script>
+</body>
+</html>

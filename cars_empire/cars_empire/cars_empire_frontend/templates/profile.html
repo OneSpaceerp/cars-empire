@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - Cars Empire{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <img src="{% static 'images/default-avatar.png' %}" alt="Profile Picture" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                    </div>
+                    <h4 id="user-fullname">Loading...</h4>
+                    <p class="text-muted" id="user-email">Loading...</p>
+                    <button class="btn btn-outline-primary btn-sm" id="edit-profile-btn">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Account Information</h5>
+                    <div id="error-message" class="alert alert-danger d-none"></div>
+                    <div id="success-message" class="alert alert-success d-none"></div>
+                    
+                    <form id="profile-form" class="d-none">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" required>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" id="cancel-edit-btn">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="save-profile-btn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="save-spinner"></span>
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="profile-info">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1 text-muted">First Name</p>
+                                <p id="display-first-name">Loading...</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1 text-muted">Last Name</p>
+                                <p id="display-last-name">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <p class="mb-1 text-muted">Email</p>
+                            <p id="display-email">Loading...</p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="mb-1 text-muted">Phone Number</p>
+                            <p id="display-phone">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Change Password</h5>
+                    <form id="password-form">
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                            <div class="form-text">Password must be at least 8 characters long.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary" id="change-password-btn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="password-spinner"></span>
+                                Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const profileForm = document.getElementById('profile-form');
+    const profileInfo = document.getElementById('profile-info');
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const saveProfileBtn = document.getElementById('save-profile-btn');
+    const saveSpinner = document.getElementById('save-spinner');
+    const passwordForm = document.getElementById('password-form');
+    const changePasswordBtn = document.getElementById('change-password-btn');
+    const passwordSpinner = document.getElementById('password-spinner');
+    const errorDiv = document.getElementById('error-message');
+    const successDiv = document.getElementById('success-message');
+
+    // Load user profile
+    try {
+        const user = await api.auth.getProfile();
+        if (user) {
+            // Update display information
+            document.getElementById('user-fullname').textContent = `${user.first_name} ${user.last_name}`;
+            document.getElementById('user-email').textContent = user.email;
+            document.getElementById('display-first-name').textContent = user.first_name;
+            document.getElementById('display-last-name').textContent = user.last_name;
+            document.getElementById('display-email').textContent = user.email;
+            document.getElementById('display-phone').textContent = user.phone || 'Not set';
+
+            // Set form values
+            document.getElementById('first_name').value = user.first_name;
+            document.getElementById('last_name').value = user.last_name;
+            document.getElementById('email').value = user.email;
+            document.getElementById('phone').value = user.phone || '';
+        }
+    } catch (error) {
+        showError('Failed to load profile information');
+    }
+
+    // Edit profile button click
+    editProfileBtn.addEventListener('click', () => {
+        profileForm.classList.remove('d-none');
+        profileInfo.classList.add('d-none');
+        editProfileBtn.classList.add('d-none');
+    });
+
+    // Cancel edit button click
+    cancelEditBtn.addEventListener('click', () => {
+        profileForm.classList.add('d-none');
+        profileInfo.classList.remove('d-none');
+        editProfileBtn.classList.remove('d-none');
+    });
+
+    // Save profile form submit
+    profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorDiv.classList.add('d-none');
+        successDiv.classList.add('d-none');
+
+        const formData = {
+            first_name: document.getElementById('first_name').value.trim(),
+            last_name: document.getElementById('last_name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim()
+        };
+
+        try {
+            saveProfileBtn.disabled = true;
+            saveSpinner.classList.remove('d-none');
+
+            const response = await api.auth.updateProfile(formData);
+            if (response && response.user) {
+                // Update display information
+                document.getElementById('user-fullname').textContent = `${response.user.first_name} ${response.user.last_name}`;
+                document.getElementById('user-email').textContent = response.user.email;
+                document.getElementById('display-first-name').textContent = response.user.first_name;
+                document.getElementById('display-last-name').textContent = response.user.last_name;
+                document.getElementById('display-email').textContent = response.user.email;
+                document.getElementById('display-phone').textContent = response.user.phone || 'Not set';
+
+                // Show success message
+                successDiv.textContent = 'Profile updated successfully';
+                successDiv.classList.remove('d-none');
+
+                // Hide form and show info
+                profileForm.classList.add('d-none');
+                profileInfo.classList.remove('d-none');
+                editProfileBtn.classList.remove('d-none');
+            }
+        } catch (error) {
+            errorDiv.textContent = error.message || 'Failed to update profile';
+            errorDiv.classList.remove('d-none');
+        } finally {
+            saveProfileBtn.disabled = false;
+            saveSpinner.classList.add('d-none');
+        }
+    });
+
+    // Change password form submit
+    passwordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorDiv.classList.add('d-none');
+        successDiv.classList.add('d-none');
+
+        const currentPassword = document.getElementById('current_password').value;
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        if (newPassword !== confirmPassword) {
+            errorDiv.textContent = 'New passwords do not match';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            errorDiv.textContent = 'Password must be at least 8 characters long';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+
+        try {
+            changePasswordBtn.disabled = true;
+            passwordSpinner.classList.remove('d-none');
+
+            const response = await api.auth.changePassword({
+                current_password: currentPassword,
+                new_password: newPassword,
+                re_new_password: confirmPassword
+            });
+
+            if (response) {
+                successDiv.textContent = 'Password changed successfully';
+                successDiv.classList.remove('d-none');
+                passwordForm.reset();
+            }
+        } catch (error) {
+            errorDiv.textContent = error.message || 'Failed to change password';
+            errorDiv.classList.remove('d-none');
+        } finally {
+            changePasswordBtn.disabled = false;
+            passwordSpinner.classList.add('d-none');
+        }
+    });
+
+    function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('d-none');
+    }
+});
+</script>
+{% endblock %} 

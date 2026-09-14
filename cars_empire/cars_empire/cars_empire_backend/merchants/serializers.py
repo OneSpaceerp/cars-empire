@@ -1,0 +1,157 @@
+from rest_framework import serializers
+from .models import Merchant, Branch, MerchantUser, MerchantImage, Category, PageAdvert, PageAdvertImage, PageAdvertVideo
+import json
+from django.utils.encoding import force_str
+
+class CategorySerializer(serializers.ModelSerializer):
+    parent = serializers.SerializerMethodField()
+    children = serializers.SerializerMethodField()
+    has_children = serializers.SerializerMethodField()
+    is_parent = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'description', 'icon', 'is_active', 'parent', 'children', 'has_children', 'is_parent', 'created_at', 'updated_at']
+    
+    def get_parent(self, obj):
+        if obj.parent:
+            return {
+                'id': obj.parent.id,
+                'name': obj.parent.name,
+                'slug': obj.parent.slug
+            }
+        return None
+    
+    def get_children(self, obj):
+        children = obj.children.filter(is_active=True)
+        return [
+            {
+                'id': child.id,
+                'name': child.name,
+                'slug': child.slug,
+                'icon': child.icon.url if child.icon else None
+            }
+            for child in children
+        ]
+    
+    def get_has_children(self, obj):
+        return obj.children.filter(is_active=True).exists()
+    
+    def get_is_parent(self, obj):
+        return obj.parent is None
+
+class MerchantImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MerchantImage
+        fields = ['id', 'image', 'image_url', 'caption', 'image_type', 'is_primary', 'order', 'created_at']
+
+    def get_image_url(self, obj):
+        if obj.image:
+            if 'request' in self.context:
+                return self.context['request'].build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ['id', 'name', 'address_text', 'latitude', 'longitude', 'contact_phone', 'email', 'is_main']
+
+class MerchantSerializer(serializers.ModelSerializer):
+    branches = BranchSerializer(many=True, read_only=True)
+    images = MerchantImageSerializer(many=True, read_only=True)
+    logo_url = serializers.SerializerMethodField()
+    cover_images = serializers.SerializerMethodField()
+    social_media = serializers.SerializerMethodField()
+    distance = serializers.FloatField(required=False)
+
+    class Meta:
+        model = Merchant
+        fields = [
+            'id', 'name', 'slug', 'description', 'logo', 'logo_url',
+            'cover_images', 'address_text', 'latitude', 'longitude',
+            'phone_number', 'email', 'website', 'facebook_url',
+            'twitter_url', 'instagram_url', 'linkedin_url', 'tiktok_url',
+            'youtube_url', 'rating', 'is_verified',
+            'is_featured', 'branches', 'images', 'social_media',
+            'created_at', 'updated_at', 'distance'
+        ]
+
+    def get_logo_url(self, obj):
+        if obj.logo:
+            if 'request' in self.context:
+                return self.context['request'].build_absolute_uri(obj.logo.url)
+            return obj.logo.url
+        return None
+
+    def get_cover_images(self, obj):
+        cover_images = obj.images.filter(image_type='cover').order_by('order', '-is_primary')
+        return MerchantImageSerializer(cover_images, many=True, context=self.context).data
+
+    def get_social_media(self, obj):
+        return {
+            'facebook': obj.facebook_url,
+            'twitter': obj.twitter_url,
+            'instagram': obj.instagram_url,
+            'linkedin': obj.linkedin_url,
+            'tiktok': obj.tiktok_url,
+            'youtube': obj.youtube_url
+        }
+
+    def to_representation(self, instance):
+        """
+        Override to_representation to handle non-ASCII characters
+        """
+        ret = super().to_representation(instance)
+        # Convert any non-ASCII strings to ensure they can be JSON serialized
+        for key, value in ret.items():
+            if isinstance(value, str):
+                # Force string encoding to UTF-8
+                ret[key] = force_str(value)
+            elif isinstance(value, dict):
+                # Handle nested dictionaries
+                for k, v in value.items():
+                    if isinstance(v, str):
+                        value[k] = force_str(v)
+            elif isinstance(value, list):
+                # Handle lists
+                for i, item in enumerate(value):
+                    if isinstance(item, str):
+                        value[i] = force_str(item)
+                    elif isinstance(item, dict):
+                        for k, v in item.items():
+                            if isinstance(v, str):
+                                item[k] = force_str(v)
+        return ret
+
+class MerchantUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MerchantUser
+        fields = ['id', 'user', 'merchant', 'role', 'is_active']
+
+# Temporarily comment out ServiceSerializer
+# class ServiceSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Service
+#         fields = ['id', 'merchant', 'name', 'description', 'price', 
+#                  'duration', 'is_available', 'created_at', 'updated_at']
+
+class PageAdvertImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PageAdvertImage
+        fields = ['id', 'image', 'order', 'created_at']
+
+class PageAdvertVideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PageAdvertVideo
+        fields = ['id', 'video', 'order', 'created_at']
+
+class PageAdvertSerializer(serializers.ModelSerializer):
+    images = PageAdvertImageSerializer(many=True, read_only=True)
+    videos = PageAdvertVideoSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = PageAdvert
+        fields = ['id', 'page_type', 'title', 'is_active', 'images', 'videos', 'created_at', 'updated_at'] 

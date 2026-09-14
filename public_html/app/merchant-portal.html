@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarsEmpire - Merchant Portal</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0041ff">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        
+        .pwa-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .top-nav {
+            background-color: white;
+            padding: 10px 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #0041ff;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .logo img {
+            margin-right: 8px;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 15px;
+        }
+        
+        .merchant-header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .merchant-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .merchant-subtitle {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #0041ff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .action-btn {
+            background: white;
+            border: 2px solid #0041ff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #0041ff;
+        }
+        
+        .action-btn:hover {
+            background: #0041ff;
+            color: white;
+        }
+        
+        .action-btn.primary {
+            background: #0041ff;
+            color: white;
+        }
+        
+        .action-btn.primary:hover {
+            background: #0033cc;
+        }
+        
+        .action-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .action-description {
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .recent-redemptions {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .redemption-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .redemption-item:last-child {
+            border-bottom: none;
+        }
+        
+        .redemption-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #0041ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+        
+        .redemption-info {
+            flex: 1;
+        }
+        
+        .redemption-customer {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .redemption-deal {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .redemption-time {
+            color: #999;
+            font-size: 0.8em;
+        }
+        
+        .redemption-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .status-redeemed {
+            background: #10b981;
+            color: white;
+        }
+        
+        .status-pending {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .qr-scanner-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+        
+        .qr-scanner-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .scanner-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .scanner-area {
+            width: 100%;
+            height: 300px;
+            background: #f4f4f4;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            border: 2px dashed #ccc;
+        }
+        
+        .scanner-placeholder {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .scanner-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .scanner-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #0041ff;
+            border-radius: 8px;
+            background: white;
+            color: #0041ff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .scanner-btn.primary {
+            background: #0041ff;
+            color: white;
+        }
+        
+        .close-scanner {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pwa-container">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="nav-container">
+                <a href="./index.html" class="logo">
+                    <img src="./logo.png" alt="CarsEmpire Logo" width="40" height="40" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                    </svg>
+                    <span>CarsEmpire</span>
+                </a>
+                
+                <h2 style="color: #333; font-size: 1.2em;">Merchant Portal</h2>
+                
+                <div style="width: 40px;"></div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="merchant-header">
+                <div class="merchant-title">Welcome to Merchant Portal</div>
+                <div class="merchant-subtitle">Manage your deals and redeem customer orders</div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">Active Deals</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">156</div>
+                    <div class="stat-label">Total Redemptions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">$2,340</div>
+                    <div class="stat-label">Revenue Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4.8</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="#" class="action-btn primary" onclick="openQRScanner()">
+                    <div class="action-icon">📱</div>
+                    <div class="action-title">Scan QR Code</div>
+                    <div class="action-description">Redeem customer orders</div>
+                </a>
+                
+                <a href="#" class="action-btn" onclick="manageDeals()">
+                    <div class="action-icon">📝</div>
+                    <div class="action-title">Manage Deals</div>
+                    <div class="action-description">Create and edit offers</div>
+                </a>
+                
+                <a href="#" class="action-btn" onclick="viewAnalytics()">
+                    <div class="action-icon">📊</div>
+                    <div class="action-title">Analytics</div>
+                    <div class="action-description">View performance data</div>
+                </a>
+                
+                <a href="#" class="action-btn" onclick="viewRedemptions()">
+                    <div class="action-icon">📋</div>
+                    <div class="action-title">Redemption History</div>
+                    <div class="action-description">View all redemptions</div>
+                </a>
+            </div>
+            
+            <div class="recent-redemptions">
+                <div class="section-title">Recent Redemptions</div>
+                <div id="redemptionsList">
+                    <div class="redemption-item">
+                        <div class="redemption-avatar">JD</div>
+                        <div class="redemption-info">
+                            <div class="redemption-customer">John Doe</div>
+                            <div class="redemption-deal">Oil Change & Filter</div>
+                            <div class="redemption-time">2 hours ago</div>
+                        </div>
+                        <div class="redemption-status status-redeemed">REDEEMED</div>
+                    </div>
+                    
+                    <div class="redemption-item">
+                        <div class="redemption-avatar">SM</div>
+                        <div class="redemption-info">
+                            <div class="redemption-customer">Sarah Miller</div>
+                            <div class="redemption-deal">Full Car Wash & Wax</div>
+                            <div class="redemption-time">4 hours ago</div>
+                        </div>
+                        <div class="redemption-status status-redeemed">REDEEMED</div>
+                    </div>
+                    
+                    <div class="redemption-item">
+                        <div class="redemption-avatar">MJ</div>
+                        <div class="redemption-info">
+                            <div class="redemption-customer">Mike Johnson</div>
+                            <div class="redemption-deal">Tire Rotation & Balance</div>
+                            <div class="redemption-time">1 day ago</div>
+                        </div>
+                        <div class="redemption-status status-redeemed">REDEEMED</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- QR Scanner Modal -->
+        <div id="qrScannerModal" class="qr-scanner-modal">
+            <div class="qr-scanner-content">
+                <span class="close-scanner" onclick="closeQRScanner()">&times;</span>
+                <div class="scanner-title">Scan Customer QR Code</div>
+                <div class="scanner-area">
+                    <div class="scanner-placeholder">
+                        📱 Point camera at QR code<br>
+                        <small>QR scanner will activate here</small>
+                    </div>
+                </div>
+                <div class="scanner-buttons">
+                    <button class="scanner-btn" onclick="closeQRScanner()">Cancel</button>
+                    <button class="scanner-btn primary" onclick="simulateQRScan()">Simulate Scan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = 'https://carsempire.net/api';
+        
+        // QR Scanner functions
+        function openQRScanner() {
+            document.getElementById('qrScannerModal').style.display = 'block';
+            // In a real implementation, you would initialize the camera and QR scanner here
+        }
+        
+        function closeQRScanner() {
+            document.getElementById('qrScannerModal').style.display = 'none';
+        }
+        
+        function simulateQRScan() {
+            const inputCode = prompt('Enter coupon code or QR token (e.g. CE-OIL-XXXXXX):');
+            if (inputCode && inputCode.trim()) {
+                processQRCode(inputCode.trim());
+            }
+        }
+        
+        async function processQRCode(qrCode) {
+            try {
+                // Step 1: Validate coupon (read-only)
+                const valResponse = await fetch(`${API_BASE_URL}/coupons/merchant/validate/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('merchantToken')}`
+                    },
+                    body: JSON.stringify({
+                        coupon_code: qrCode,
+                        qr_token: qrCode
+                    })
+                });
+
+                const valData = await valResponse.json();
+                if (!valResponse.ok || !valData.valid) {
+                    alert(`Validation Failed:\n${valData.message || valData.error || 'Invalid or expired coupon'}`);
+                    return;
+                }
+
+                // Step 2: Confirm with cashier
+                const confirmed = confirm(
+                    `Valid Coupon Found!\n\n` +
+                    `Service: ${valData.offer.title}\n` +
+                    `Customer: ${valData.customer.display_name}\n` +
+                    `Vehicle: ${valData.vehicle ? valData.vehicle.make + ' ' + valData.vehicle.model : 'Any'}\n` +
+                    `Valid Until: ${new Date(valData.valid_until).toLocaleDateString()}\n\n` +
+                    `Press OK to CONFIRM REDEMPTION and open a Work Order.`
+                );
+
+                if (!confirmed) return;
+
+                // Step 3: Atomic Redeem
+                const redeemResponse = await fetch(`${API_BASE_URL}/coupons/merchant/redeem/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('merchantToken')}`
+                    },
+                    body: JSON.stringify({
+                        coupon_id: valData.coupon_id,
+                        coupon_code: valData.coupon_code,
+                        confirmation: true,
+                        method: 'qr_scan'
+                    })
+                });
+                
+                const result = await redeemResponse.json();
+                if (redeemResponse.ok) {
+                    alert(
+                        `Redemption Successful!\n\n` +
+                        `Receipt #: ${result.receipt_number}\n` +
+                        `Work Order #: ${result.work_order_number}\n` +
+                        `Customer: ${result.customer_name}\n` +
+                        `Service: ${result.deal_title}`
+                    );
+                    closeQRScanner();
+                    loadRedemptions(); // Refresh list
+                } else {
+                    alert(`Redemption Error:\n${result.message || result.error || 'Failed to redeem coupon.'}`);
+                }
+            } catch (error) {
+                console.error('Redemption processing error:', error);
+                alert('Connection error. Please check server connection.');
+            }
+        }
+        
+        // Other merchant functions
+        function manageDeals() {
+            alert('Deal management functionality coming soon!');
+        }
+        
+        function viewAnalytics() {
+            alert('Analytics dashboard coming soon!');
+        }
+        
+        function viewRedemptions() {
+            alert('Full redemption history coming soon!');
+        }
+        
+        // Load recent redemptions
+        async function loadRedemptions() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/merchants/recent-redemptions/`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('merchantToken')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayRedemptions(data.redemptions);
+                }
+            } catch (error) {
+                console.error('Error loading redemptions:', error);
+            }
+        }
+        
+        function displayRedemptions(redemptions) {
+            const redemptionsList = document.getElementById('redemptionsList');
+            if (!redemptionsList) return;
+            
+            if (redemptions.length === 0) {
+                redemptionsList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No redemptions yet</h3>
+                        <p>Customer redemptions will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            redemptionsList.innerHTML = redemptions.map(redemption => `
+                <div class="redemption-item">
+                    <div class="redemption-avatar">${redemption.customer_name.charAt(0)}</div>
+                    <div class="redemption-info">
+                        <div class="redemption-customer">${redemption.customer_name}</div>
+                        <div class="redemption-deal">${redemption.deal_title}</div>
+                        <div class="redemption-time">${new Date(redemption.redeemed_at).toLocaleString()}</div>
+                    </div>
+                    <div class="redemption-status status-redeemed">REDEEMED</div>
+                </div>
+            `).join('');
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('qrScannerModal');
+            if (event.target === modal) {
+                closeQRScanner();
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if merchant is logged in
+            const merchantToken = localStorage.getItem('merchantToken');
+            if (!merchantToken) {
+                alert('Please log in as a merchant to access this portal');
+                window.location.href = './auth.html';
+                return;
+            }
+            
+            loadRedemptions();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Test - Cars Empire</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success {
+            color: #28a745;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Cars Empire PWA Test</h1>
+        
+        <div class="success">
+            ✅ PWA is working correctly!
+        </div>
+        
+        <div class="info">
+            <h3>Test Information:</h3>
+            <p><strong>Language:</strong> {{ current_language|default:"en" }}</p>
+            <p><strong>Text Direction:</strong> {{ text_direction|default:"ltr" }}</p>
+            <p><strong>Server Time:</strong> {{ server_time|default:"N/A" }}</p>
+        </div>
+        
+        <h3>Available PWA Pages:</h3>
+        <ul>
+            <li><a href="/pwa/">Homepage</a></li>
+            <li><a href="/pwa/deals/">Deals</a></li>
+            <li><a href="/pwa/merchants/">Merchants</a></li>
+            <li><a href="/pwa/cart/">Cart</a></li>
+            <li><a href="/pwa/profile/">Profile</a></li>
+        </ul>
+        
+        <h3>API Endpoints:</h3>
+        <ul>
+            <li><a href="/pwa/api/advert/">Advert API</a></li>
+            <li><a href="/pwa/api/translations/">Translations API</a></li>
+        </ul>
+        
+        <div class="info">
+            <h3>Language Testing:</h3>
+            <p><a href="?lang=en">English</a> | <a href="?lang=ar">Arabic</a></p>
+        </div>
+    </div>
+</body>
+</html> 

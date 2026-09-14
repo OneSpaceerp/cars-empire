@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ deal.title }} - Cars Empire{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'deals' %}">Deals</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ deal.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Deal Images -->
+        <div class="col-lg-6 mb-4">
+            {% if deal.images.exists %}
+            <div id="dealImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for image in deal.images.all %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ image.image.url }}" class="d-block w-100 rounded" alt="{{ image.alt_text|default:deal.title }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if deal.images.count > 1 %}
+                <button class="carousel-control-prev" type="button" data-bs-target="#dealImageCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#dealImageCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+                {% endif %}
+            </div>
+            {% else %}
+            <img src="https://via.placeholder.com/600x400.png?text=Deal+Image" class="img-fluid rounded" alt="Deal Placeholder Image">
+            {% endif %}
+        </div>
+
+        <!-- Deal Information -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title h3">{{ deal.title }}</h1>
+                    
+                    <!-- Merchant Info -->
+                    <div class="mb-3">
+                        <small class="text-muted">Offered by</small>
+                        <div class="d-flex align-items-center">
+                            {% if deal.merchant.logo %}
+                            <img src="{{ deal.merchant.logo.url }}" alt="{{ deal.merchant.name }}" class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0">{{ deal.merchant.name }}</h6>
+                                {% if deal.merchant.rating %}
+                                <small class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= deal.merchant.rating %}
+                                            ★
+                                        {% else %}
+                                            ☆
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ deal.merchant.rating }}/5
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Information -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-baseline">
+                            <span class="h2 text-danger fw-bold">EGP {{ deal.discount_price }}</span>
+                            <span class="text-muted text-decoration-line-through ms-3">EGP {{ deal.original_price }}</span>
+                            <span class="badge bg-success ms-2">{{ deal.discount_percentage }}% OFF</span>
+                        </div>
+                    </div>
+
+                    <!-- Deal Details -->
+                    <div class="mb-4">
+                        <h6>Deal Details</h6>
+                        <p class="text-muted">{{ deal.description }}</p>
+                    </div>
+
+                    <!-- Applicable Models -->
+                    {% if deal.applicable_models.exists %}
+                    <div class="mb-4">
+                        <h6>Applicable Car Models</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for model in deal.applicable_models.all %}
+                            <span class="badge bg-light text-dark">{{ model.make.name }} {{ model.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Deal Validity -->
+                    <div class="mb-4">
+                        <h6>Deal Validity</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Starts</small>
+                                <div>{{ deal.start_datetime|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Ends</small>
+                                <div>{{ deal.end_datetime|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quantity Limit -->
+                    {% if deal.quantity_limit %}
+                    <div class="mb-4">
+                        <h6>Quantity Limit</h6>
+                        <p class="text-muted">Maximum {{ deal.quantity_limit }} coupons available</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-lg" onclick="addToCart({{ deal.id }})">
+                            <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                        </button>
+                        <a href="{% url 'merchant_detail' deal.merchant.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-store me-2"></i>View Merchant
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comprehensive Details Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Deal Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Description -->
+                        <div class="col-12 mb-4">
+                            <h6 class="text-primary">Description</h6>
+                            <p class="text-muted">{{ deal.description|linebreaks }}</p>
+                        </div>
+
+                        <!-- Applicable Car Models -->
+                        {% if deal.applicable_models.exists %}
+                        <div class="col-12 mb-4">
+                            <h6 class="text-primary">Applicable Car Models</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for model in deal.applicable_models.all %}
+                                <span class="badge bg-light text-dark border">{{ model.make.name }} {{ model.name }}</span>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted mt-2 d-block">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Select specific car models this deal applies to. Leave blank if universally applicable within category.
+                            </small>
+                        </div>
+                        {% else %}
+                        <div class="col-12 mb-4">
+                            <h6 class="text-primary">Applicable Car Models</h6>
+                            <p class="text-muted">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Universally applicable within this category
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Deal Validity -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary">Deal Validity</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">Start Date</small>
+                                    <div class="fw-bold">{{ deal.start_datetime|date:"M d, Y" }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">End Date</small>
+                                    <div class="fw-bold">{{ deal.end_datetime|date:"M d, Y" }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quantity Limit -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary">Quantity Limit</h6>
+                            {% if deal.quantity_limit %}
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-ticket-alt me-2"></i>
+                                    Maximum {{ deal.quantity_limit }} coupons available
+                                </p>
+                            {% else %}
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-infinity me-2"></i>
+                                    No quantity limit
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary">Category</h6>
+                            <span class="badge bg-secondary">{{ deal.category.name }}</span>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary">Status</h6>
+                            {% if deal.is_active %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-clock me-1"></i>Inactive
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms and Conditions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-file-contract me-2"></i>Terms and Conditions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="terms-content">
+                        {{ deal.terms_and_conditions|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Redemption Instructions -->
+    {% if deal.redemption_instructions %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-handshake me-2"></i>Redemption Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="redemption-content">
+                        {{ deal.redemption_instructions|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Related Deals -->
+    {% if related_deals %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>More Deals from {{ deal.merchant.name }}</h4>
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for related_deal in related_deals %}
+                <div class="col">
+                    <div class="card h-100">
+                        {% if related_deal.images.first %}
+                        <img src="{{ related_deal.images.first.image.url }}" class="card-img-top" alt="{{ related_deal.title }}">
+                        {% else %}
+                        <img src="https://via.placeholder.com/300x200.png?text=Deal+Image" class="card-img-top" alt="Deal Placeholder Image">
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title">{{ related_deal.title }}</h6>
+                            <div class="d-flex align-items-baseline">
+                                <span class="text-danger fw-bold">EGP {{ related_deal.discount_price }}</span>
+                                <span class="text-muted text-decoration-line-through ms-2">EGP {{ related_deal.original_price }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pb-3">
+                            {% if related_deal.slug %}
+                                <a href="{% url 'deal-detail' related_deal.slug %}" class="btn btn-outline-primary btn-sm w-100">View Deal</a>
+                            {% else %}
+                                <a href="{% url 'deal-detail' related_deal.id %}" class="btn btn-outline-primary btn-sm w-100">View Deal</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function addToCart(dealId) {
+    // Add to cart functionality
+    console.log('Adding deal to cart:', dealId);
+    // TODO: Implement add to cart functionality
+    alert('Deal added to cart!');
+}
+</script>
+
+<style>
+.terms-content, .redemption-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #495057;
+}
+
+.terms-content ul, .redemption-content ul {
+    padding-left: 1.5rem;
+}
+
+.terms-content li, .redemption-content li {
+    margin-bottom: 0.5rem;
+}
+
+.card-header.bg-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+.card-header.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+}
+
+.card-header.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+.badge.bg-light {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    color: #495057 !important;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+
+.fw-bold {
+    font-weight: 600 !important;
+}
+</style>
+{% endblock %}
+

@@ -1,0 +1,713 @@
+6. Complete State Machines
+6.1 Checkout
+CART
+ ↓
+QUOTE_CREATED
+ ↓
+SLOT_HELD (if booking)
+ ↓
+ORDER_CREATED
+ ↓
+PAYMENT_PENDING
+ ├──→ PAYMENT_FAILED → RETRY / CANCEL
+ └──→ PAYMENT_CAPTURED
+             ↓
+          ORDER_PAID
+             ↓
+     VOUCHER_ISSUED / BOOKING_CONFIRMED
+             ↓
+       ORDER_CONFIRMED
+6.2 Payment
+INITIATED
+ ↓
+PENDING
+ ├──→ FAILED
+ ├──→ CANCELLED
+ └──→ AUTHORIZED
+           ↓
+        CAPTURED
+           ↓
+        SETTLED
+           └──→ REFUND_REQUESTED
+                    ↓
+                 REFUNDING
+                    ↓
+                 REFUNDED
+6.3 Booking
+AVAILABLE
+ ↓
+HELD
+ ├──→ HOLD_EXPIRED → AVAILABLE
+ └──→ CONFIRMED
+        ├──→ RESCHEDULE_REQUESTED → RESCHEDULED
+        ├──→ CUSTOMER_NO_SHOW
+        ├──→ MERCHANT_CANCELLED
+        └──→ CHECKED_IN
+                ↓
+             IN_SERVICE
+                ↓
+             COMPLETED
+6.4 Voucher
+CREATED
+ ↓
+AVAILABLE
+ ├──→ RESERVED
+ │      └──→ AVAILABLE
+ ├──→ REDEEMED
+ │      └──→ WORK_ORDER_CREATED
+ ├──→ REFUNDED
+ ├──→ SUSPENDED
+ └──→ EXPIRED
+6.5 Work Order
+OPENED
+ ↓
+INSPECTION
+ ↓
+AWAITING_APPROVAL
+ ├──→ CUSTOMER_DECLINED → IN_PROGRESS (included work only)
+ └──→ CUSTOMER_APPROVED
+             ↓
+         IN_PROGRESS
+             ↓
+        QA_PENDING
+             ↓
+         COMPLETED
+             ↓
+      SERVICE_RECORD_CREATED
+6.6 Refund
+REQUESTED
+ ↓
+UNDER_REVIEW
+ ├──→ REJECTED
+ └──→ APPROVED
+        ↓
+     PROCESSING
+        ├──→ FAILED → RETRY
+        └──→ COMPLETED
+               ↓
+          WALLET_OR_GATEWAY
+6.7 Merchant Settlement
+DRAFT
+ ↓
+CALCULATED
+ ↓
+APPROVED
+ ↓
+PROCESSING
+ ├──→ HELD (dispute/compliance)
+ └──→ PAID
+        ↓
+     RECONCILED
+6.8 Advertising Campaign State Machine
+DRAFT
+↓ SUBMIT
+PENDING_PAYMENT
+↓ PAYMENT_CAPTURED
+PENDING_APPROVAL
+├──→ REJECTED → EDIT_REQUIRED → PENDING_APPROVAL
+└──→ APPROVED
+↓ SCHEDULED
+ACTIVE
+├──→ PAUSED
+├──→ BUDGET_EXHAUSTED
+├──→ PAYMENT_FAILED
+├──→ POLICY_SUSPENDED
+└──→ COMPLETED/EXPIRED
+Ad-serving decision state is separate from campaign workflow state. A campaign may be ACTIVE but temporarily return NO_AD because the slot is not eligible for the current user/page, frequency cap is reached, targeting does not match, or the creative is unavailable.
+7. Permission Matrix
+Action
+Consumer
+Merchant Owner
+Merchant Manager
+Cashier/Advisor
+Technician
+Support
+Content
+Finance
+Admin
+Super Admin
+View public offers
+R
+R
+R
+R
+R
+R
+R
+R
+R
+R
+Purchase service
+CUD
+-
+-
+-
+-
+-
+-
+-
+-
+-
+Manage own vehicles
+CUD
+-
+-
+-
+-
+-
+-
+-
+-
+-
+Create merchant offer
+-
+CUD
+CUD
+-
+-
+-
+CUD
+-
+CUD
+CUD
+Submit offer for review
+-
+C
+C
+-
+-
+-
+C
+-
+C
+C
+Approve offer
+-
+-
+-
+-
+-
+-
+C
+-
+CUD
+CUD
+Manage bookings
+R/C
+CUD
+CUD
+CUD
+R
+R
+R
+R
+CUD
+CUD
+Validate voucher
+-
+R/C
+R/C
+R/C
+-
+R
+-
+-
+CUD
+CUD
+Redeem voucher
+-
+C
+C
+C
+-
+C
+-
+-
+CUD
+CUD
+Edit work order
+-
+CUD
+CUD
+CUD
+CUD
+R
+-
+-
+CUD
+CUD
+Approve add-on on behalf of customer
+C
+-
+-
+-
+-
+-
+-
+-
+-
+-
+Issue refund
+R/C
+R
+R
+-
+-
+CUD
+-
+CUD
+CUD
+CUD
+Manage settlements
+-
+R
+R
+-
+-
+-
+-
+CUD
+CUD
+CUD
+Manage users
+self
+merchant staff
+merchant staff
+-
+-
+R
+-
+-
+CUD
+CUD
+Manage RBAC
+-
+-
+-
+-
+-
+-
+-
+-
+CUD
+CUD
+View audit logs
+own
+merchant scope
+merchant scope
+own actions
+own actions
+support scope
+content scope
+finance scope
+R
+CUD
+Permission notation: R = read, C = create/trigger, U = update, D = delete/archive, CUD = full create/update/delete within scope, self = own resource only, merchant scope = only the merchant organization.
+7.1 Advertising Permission Addendum
+Role
+Create Campaign
+Edit Own Campaign
+Pay
+View Performance
+Approve/Reject
+Pause Any Campaign
+Merchant Owner
+C
+CUD
+C
+R
+-
+Own only
+Merchant Manager
+C
+CUD
+C
+R
+-
+Own only
+Merchant Staff
+-
+-
+-
+-
+-
+-
+Finance
+-
+-
+R/C*
+R
+-
+-
+Content Manager
+-
+-
+-
+R
+C/U creative
+-
+Admin
+C
+CUD
+C*
+R
+C/U
+CUD
+Super Admin
+C
+CUD
+CUD
+R
+CUD
+CUD
+* Scope is limited by the user’s financial/RBAC permissions and requires audit logging.
+8. UX & Design System
+8.1 Navigation
+Consumer: Home | Explore | Garage | Orders | Profile
+Merchant: Dashboard | Calendar | Redeem | Work Orders | More
+Admin: Dashboard | Marketplace | Operations | Finance | Settings
+8.2 Offer Card
+┌─────────────────────────────────────────┐
+│ [IMAGE]                           -35% │
+├─────────────────────────────────────────┤
+│ Merchant Name                         │
+│ Full Synthetic Oil Change             │
+│ ★ 4.8   2.1 km   60 min                │
+│                                         │
+│ EGP 799     EGP 1,150                  │
+│ Save EGP 351                           │
+│                                         │
+│ [ BOOK NOW ]                    ♡      │
+└─────────────────────────────────────────┘
+8.3 Automotive-Specific Trust UX
+Display estimated service duration.
+Display what is included and explicitly excluded.
+Show whether the offer is vehicle-compatible before payment.
+Show merchant rating plus number of verified reviews.
+Show workshop certifications/brands served when verified.
+Show exact branch location and whether the service is mobile.
+Never hide mandatory fees until the final payment step.
+For jobs likely to create additional findings, explain the inspection/add-on process before purchase.
+8.4 Booking UX
+1. Choose Vehicle
+2. Choose Branch or Mobile Service
+3. Choose Date
+4. Choose Time
+5. Review Service + Price
+6. Pay / Reserve
+7. Confirmation + Directions + Reminder
+8.5 Work-Order UX
+CHECK-IN
+  ↓
+Vehicle identity + mileage
+  ↓
+Inspection
+  ↓
+Customer sees findings
+  ↓
+Accept / Reject add-ons
+  ↓
+Service execution
+  ↓
+Quality check
+  ↓
+Completion summary
+  ↓
+Review
+8.6 Advertising UX
+The sponsored banner must feel native to the Cars Empire visual language but remain clearly distinguishable as a sponsored placement.
+On mobile, use a wide card/banner with rounded corners, strong offer value, merchant identity and a single primary CTA. Avoid tiny text that cannot be read at normal viewing distance.
+On web, support responsive widths and retina/high-density assets without changing the slot contract.
+When no advertisement is available, remove the component entirely; no blank card, placeholder, reserved margin or broken image may remain.
+If an ad is loading, use a lightweight non-layout-shifting placeholder only when necessary; after NO_AD the placeholder must collapse completely.
+The ad destination must open in the same app/web context whenever possible and preserve campaign attribution through the subsequent offer/order flow.
+Add an optional "Sponsored" label and merchant logo. Never label an organic offer as sponsored.
+Respect dark mode, RTL Arabic layouts, safe-area insets and accessibility contrast.
+Advertising-specific non-functional requirements:
+Ad decision API p95 target: <= 150 ms from cache for standard traffic.
+No ad response may block primary page rendering; fetch ads asynchronously when technically appropriate.
+CDN cache creatives aggressively while keeping campaign eligibility server-controlled.
+Ad delivery must remain available even if analytics collection is temporarily degraded; tracking must fail open for page rendering.
+Campaign budget and billing mutations must be strongly transactional and idempotent.
+9. Non-Functional Requirements
+Area
+Requirement
+Target
+API latency
+Standard reads p95
+< 300 ms
+Search
+Search API p95
+< 500 ms
+Checkout
+Pre-gateway processing
+< 2 sec
+Redemption
+Validate + redeem
+< 2 sec under normal conditions
+Availability
+Core commerce
+99.9%+
+Redemption availability
+Merchant validation path
+99.99% target
+Security
+TLS
+1.2+
+Passwords
+Hashing
+Argon2id/bcrypt
+Audit
+Admin and finance actions
+Immutable log
+Payments
+Card data
+Never store raw PAN/CVV
+Backups
+Database
+Automated daily + point-in-time recovery
+Observability
+Logs/traces/metrics
+100% of critical workflows
+Localization
+Languages
+Arabic + English
+Accessibility
+Mobile/web
+WCAG-aware; large touch targets
+10. Security, Privacy & Fraud Controls
+Encrypt all traffic with HTTPS/TLS.
+Hash passwords with Argon2id; never log passwords or OTPs.
+Tokenize payment instruments through PSPs; do not store sensitive card data.
+Use signed webhooks and idempotency keys for every payment event.
+Rate-limit OTP, login, voucher validation and redemption endpoints.
+Use short-lived access tokens and rotating refresh tokens.
+Add merchant-device binding or MFA for high-risk actions.
+Enforce branch scope and staff scope server-side.
+Protect against double redemption through row-level locking/transactional constraints.
+Use fraud rules for repeated redemption, abnormal refunds, device/account clusters and suspicious merchant behavior.
+Log all manual state overrides with actor, reason, before/after values and timestamp.
+Provide privacy controls for location, marketing and service history data.
+10.1 Advertising Security & Fraud Controls
+Sign or server-validate billable impression/click events; never trust the browser/mobile client to set chargeable amounts.
+Use bot/device heuristics, abnormal click-rate detection, repeated-click throttling and campaign-level fraud review.
+Merchant cannot modify campaign billing events or reported spend.
+Admin overrides to campaign status, budget or billing require an audit reason.
+11. Analytics & KPI Framework
+11.1 Event Taxonomy
+app_opened
+location_selected
+vehicle_added
+search_performed
+service_category_viewed
+offer_viewed
+merchant_viewed
+branch_viewed
+slot_viewed
+slot_held
+checkout_started
+payment_started
+payment_succeeded
+payment_failed
+order_created
+voucher_viewed
+merchant_scan_started
+voucher_validated
+voucher_redeemed
+work_order_started
+addon_proposed
+addon_approved
+work_order_completed
+review_submitted
+refund_requested
+refund_completed
+support_ticket_created
+11.2 North-Star & Secondary KPIs
+Metric
+Definition
+Successful Redeemed Transactions
+Paid service entitlement successfully redeemed/completed
+GMV
+Gross value of customer purchases
+Completed Service Rate
+Completed work orders / paid orders
+Redemption Success Rate
+Successful redemptions / redemption attempts
+Booking Conversion
+Confirmed bookings / offer detail views
+Repeat Customer Rate
+Customers with >=2 completed services / completed customers
+Average Order Value
+GMV / paid orders
+Refund Rate
+Refunded GMV / paid GMV
+Merchant Utilization
+Booked capacity / published capacity
+Merchant Retention
+Merchants active in consecutive periods
+Support Rate
+Support tickets / orders
+11.3 Advertising Event Taxonomy
+ad_decision_requested
+ad_served
+ad_viewable
+ad_clicked
+ad_destination_opened
+ad_campaign_created
+ad_campaign_paid
+ad_campaign_submitted
+ad_campaign_approved
+ad_campaign_rejected
+ad_campaign_paused
+ad_budget_exhausted
+ad_campaign_completed
+ad_attributed_offer_viewed
+ad_attributed_order_created
+ad_attributed_order_paid
+12. Acceptance Criteria
+1. Consumer can register via OTP and create a vehicle in < 2 minutes.
+2. Consumer cannot purchase an offer that is incompatible with selected vehicle rules.
+3. A booking slot cannot be double-booked when capacity is exhausted.
+4. A successful captured payment creates exactly one order and exactly the intended number of vouchers, even if client retries.
+5. A voucher cannot be redeemed twice concurrently.
+6. A merchant staff member can redeem a voucher in <= 3 screens after login.
+7. A redeemed service creates or links to exactly one work order for the primary service entitlement.
+8. Additional work requires explicit customer approval and records actor, timestamp and amount.
+9. Refunds move money state and entitlement state consistently and are fully auditable.
+10. Merchant settlement totals reconcile against captured transactions, refunds and commission.
+11. Admin overrides require permissions and reason codes.
+12. Every critical financial or entitlement mutation has an idempotency strategy.
+13. Customer sees transparent final price before payment.
+14. Customer can access purchased voucher offline after successful payment.
+15. Completed work produces a persistent vehicle service record visible to the customer.
+12.1 Advertising Acceptance Criteria
+16. GLOBAL_TOP_BANNER is available as a configured consumer app/web slot on all standard consumer-facing pages.
+17. When no campaign is eligible, the ad component is completely absent and consumes zero layout height.
+18. When a campaign is eligible, only an approved, scheduled, funded and targeting-matched creative can be served.
+19. A merchant can create, pay for, submit and monitor an advertising campaign without Admin database intervention.
+20. Admin can approve/reject/pause campaigns and audit every manual action.
+21. A campaign supports city/category/vehicle/audience/time targeting and frequency caps.
+22. Impressions and clicks are idempotent and billable only from server-authoritative events.
+23. Merchant performance includes impressions, clicks, CTR, spend, remaining budget and attributed conversions where enabled.
+24. A paid campaign cannot serve after end_at, budget exhaustion, policy suspension or failed payment.
+25. Campaign creative and destination are validated before approval.
+26. Ad rendering never blocks checkout, voucher viewing or critical consumer actions.
+27. Ads are clearly identified as sponsored content when required by policy.
+13. Delivery Plan
+Phase
+Scope
+Outcome
+MVP
+Auth, Garage, Catalog, Search, Merchants, Offers, Booking, Checkout, Payments, Vouchers, Redemption, Work Orders, Support, Admin
+End-to-end paid service transaction
+Phase 2
+Wallet, Cashback, Reviews, Loyalty, Advanced merchant analytics, SMS/WhatsApp
+Retention and merchant growth
+Phase 3
+Mobile service, dynamic capacity, bundles, partner APIs, corporate benefits
+Marketplace expansion
+Phase 4
+Predictive maintenance, AI recommendations, fraud ML, telematics integrations
+Intelligent automotive ecosystem
+14. Recommended Engineering Decisions
+Use PostgreSQL as system-of-record for transactional data.
+Use Redis for cache, short booking holds and rate limits; never as the authoritative store for money or voucher state.
+Use an event bus/queue for notifications, analytics, settlement jobs and non-critical asynchronous workflows.
+Use object storage for vehicle/work-order photos and KYC documents.
+Use OpenSearch/Elasticsearch for bilingual automotive search.
+Use a payment abstraction layer so PSPs can be replaced or expanded without rewriting checkout.
+Use a modular monolith for MVP if the team is small; split services only when scale or ownership justifies it.
+Keep money, entitlement and redemption logic in strongly transactional boundaries.
+Use Arabic/English from the first schema and API version: localized fields, search normalization and RTL-ready UI.
+15. Database Index & Constraint Recommendations
+users(phone) UNIQUE
+users(email) UNIQUE WHERE email IS NOT NULL
+vehicles(user_id, is_primary) partial unique index where is_primary=true
+offers(merchant_id, status, sale_start, sale_end)
+offers(service_id, status)
+merchant_branches(city_id, area_id, status)
+GIST/geo index on branch coordinates
+orders(user_id, created_at DESC)
+orders(order_number) UNIQUE
+payments(idempotency_key) UNIQUE
+payments(provider, provider_transaction_id) UNIQUE
+vouchers(qr_token_hash) UNIQUE
+vouchers(code_hash) UNIQUE where code_hash is not null
+redemptions(voucher_id) UNIQUE
+booking_slots(branch_id, starts_at)
+work_orders(merchant_id, status, created_at DESC)
+settlements(merchant_id, period_start, period_end)
+15.1 Advertising Index & Constraint Recommendations
+ad_slots(slot_key) UNIQUE
+ad_campaigns(merchant_id, status, start_at, end_at)
+ad_campaigns(slot_id, status, start_at, end_at)
+ad_bookings(slot_id, date_from, date_to, booking_status)
+ad_impressions(impression_id) UNIQUE
+ad_clicks(click_id) UNIQUE
+ad_billing_events(idempotency_key) UNIQUE
+ad_performance_daily(campaign_id, date) UNIQUE
+Index ad_targets for target_type + target identifiers used in decisioning.
+16. Automotive Service Taxonomy
+Category
+Example Services
+Maintenance
+Oil change, filters, fluids, scheduled maintenance
+Brakes
+Pads, discs, inspection, brake fluid
+Tires
+Tire sales/fitment, rotation, balancing, repair
+Batteries
+Testing, replacement, jump start, mobile battery
+AC & Cooling
+AC service, gas refill, radiator, cooling system
+Electrical
+Diagnostics, alternator, starter, lighting
+Diagnostics
+Computer diagnostics, OBD scanning, fault clearing
+Car Wash & Detailing
+Wash, interior cleaning, polishing, ceramic/coating
+Body & Paint
+Dent repair, paint touch-up, bumper repair
+Alignment & Suspension
+Alignment, shocks, suspension inspection
+Inspection
+Pre-purchase, annual inspection, roadworthiness
+Emergency / Mobile
+Towing, roadside assistance, mobile repair
+Performance
+Tuning, exhaust, accessories, upgrades
+17. Final Product Blueprint
+                         CARS EMPIRE
+                              │
+            ┌─────────────────┼─────────────────┐
+            │                 │                 │
+        CAR OWNERS         MERCHANTS         ADMINS
+            │                 │                 │
+       ┌────┴────┐       ┌────┴────┐       ┌────┴────┐
+       │ Garage  │       │ Offers  │       │ Control │
+       │ Search  │       │ Booking │       │ Finance │
+       │ Booking │       │ Redeem  │       │ Support │
+       │ Wallet  │       │ Work    │       │ Risk    │
+       └────┬────┘       └────┬────┘       └────┬────┘
+            └─────────────────┼─────────────────┘
+                              │
+                    TRANSACTION CORE
+                              │
+      ┌────────────┬──────────┼──────────┬────────────┐
+      │            │          │          │            │
+   Catalog      Booking    Payment    Voucher      Work Order
+      │            │          │          │            │
+      └────────────┴──────────┴──────────┴────────────┘
+                              │
+                     SERVICE COMPLETED
+                              │
+                     VEHICLE HISTORY
+                              │
+                        REPEAT CARE
+Final architectural principle: Cars Empire should own the customer relationship, transaction state, entitlement/voucher state and service history while allowing merchants to own the operational execution of the service.
+Appendix A — Cars Empire Advertising Product Definition
+Commercial principle: advertising is a first-class revenue stream. Cars Empire sells scarce, measurable placement inventory to automotive merchants while preserving a clean organic marketplace. The global slot is always structurally available but visually absent when there is no eligible paid campaign.
+Recommended initial product name in the merchant portal: "Sponsored Banner Campaign". Internal slot key: GLOBAL_TOP_BANNER. Future slots may include CATEGORY_BANNER, SEARCH_SPONSORED_CARD, MERCHANT_SPOTLIGHT and CHECKOUT_CROSS_SELL, but those should be introduced only after the first slot is proven.
+Reference image requirement: the supplied screenshot demonstrates the intended interaction pattern: a prominent promotional visual with merchant branding and a strong offer, embedded naturally into the consumer home experience. Cars Empire should use automotive imagery, service-focused value propositions and its own brand system rather than copying the reference artwork.
+Appendix B — Product Benchmark Note
+This specification intentionally adopts selected marketplace mechanics observed in the Waffarha benchmark — offers, merchant onboarding, location discovery, payments, vouchers, merchant redemption, personalization, wallet/loyalty and B2B2C distribution — but reinterprets them for automotive services. Cars Empire adds vehicle garage, vehicle eligibility, scheduling, work orders, technician workflows, inspection/add-on approval and service history as first-class domain objects.

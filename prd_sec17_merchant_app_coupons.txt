@@ -1,0 +1,263 @@
+17. Merchant Mobile App & Unique Coupon Redemption Engine
+The Cars Empire merchant experience must include a dedicated mobile application for merchant owners, managers and staff/cashiers. Its highest-priority operational function is secure validation and redemption of customer coupon codes. Each purchased coupon must be an individual, one-time entitlement with a globally unique code and redemption token, even when multiple customers purchase the same deal.
+17.1 Business Rules for Coupons
+Every purchased coupon instance is unique. If a customer purchases quantity 3, the system creates 3 different coupon records and 3 different redeemable codes.
+A deal/offer is a commercial template; a coupon is a unique customer entitlement generated from that template after successful payment.
+Coupon codes are globally unique across the entire Cars Empire platform, not merely unique within a merchant or offer.
+The QR payload/token is also globally unique and must not be reused, even after expiration or cancellation.
+A coupon is single-use unless the offer explicitly supports controlled partial redemption. For standard automotive services, the default is one coupon -> one service redemption.
+Redemption must be atomic and concurrency-safe. Two merchant devices must never be able to redeem the same coupon successfully.
+Merchant staff can validate a code before redeeming it. Validation is read-only and does not consume the coupon.
+Redemption requires an explicit confirmation action by the authorized merchant staff member.
+A redeemed coupon creates or links to exactly one primary work order/service entitlement.
+Coupons must remain available in the customer app after purchase, including an offline-readable voucher screen. Offline merchant redemption is permitted only where the selected operating policy supports signed offline tokens and later synchronization.
+17.2 Coupon Code Generation
+Recommended code design: a human-readable code plus a separate opaque QR token. Do not use sequential order numbers, database IDs or predictable timestamps as redeemable secrets.
+Field
+Requirement
+coupon_code
+Unique, case-insensitive normalized value; e.g. CE-OIL-7K4P9Q2M
+qr_token
+Cryptographically random opaque token, never derived from coupon_code
+code_hash
+SHA-256/HMAC hash used for lookup and anti-leakage controls where practical
+display_code
+Formatted human-readable code with separators only for UI; canonical value stored separately
+generation
+Cryptographically secure random generator with collision retry
+uniqueness
+Database UNIQUE constraint on canonical coupon_code and UNIQUE constraint on qr_token
+entropy
+Recommended minimum 80 bits of effective entropy for redeemable secrets; higher is preferred
+rotation
+No rotation after issue. If compromised, suspend the coupon and issue a replacement through an audited workflow
+enumeration protection
+Never expose whether a nearby code exists; return generic invalid/expired errors
+17.3 Coupon Data Model Additions
+Entity
+Key Fields
+COUPON_TEMPLATES
+id, offer_id, code_prefix, redemption_type, quantity_rules, validity_rules, status
+COUPONS
+id, order_item_id, offer_id, customer_id, vehicle_id, merchant_id, branch_scope, coupon_code, code_hash, qr_token, status, issued_at, valid_from, valid_until, redeemed_at, redeemed_by_staff_id, redemption_id
+COUPON_EVENTS
+id, coupon_id, event_type, actor_user_id, merchant_staff_id, branch_id, device_id, reason_code, metadata, created_at
+REDEMPTIONS
+id, coupon_id, order_id, work_order_id, merchant_id, branch_id, staff_id, device_id, validated_at, redeemed_at, status, reversal_reason
+MERCHANT_DEVICES
+id, merchant_id, branch_id, device_fingerprint, platform, app_version, status, last_seen_at, last_sync_at
+REDEMPTION_POLICIES
+id, offer_id, allowed_branches, booking_required, vehicle_eligibility, partial_redemption_allowed, offline_allowed
+Required database constraints:
+UNIQUE(coupon_code_normalized)
+UNIQUE(qr_token)
+UNIQUE(redemptions.coupon_id) for single-use offers
+FOREIGN KEY coupons.offer_id -> offers.id
+FOREIGN KEY coupons.customer_id -> users.id
+FOREIGN KEY coupons.merchant_id -> merchants.id
+FOREIGN KEY redemptions.coupon_id -> coupons.id
+INDEX(coupon_code_hash, status)
+INDEX(qr_token, status)
+INDEX(merchant_id, branch_id, status, valid_until)
+17.4 Coupon Issuance Flow
+The application must never generate usable coupons solely from an add-to-cart event. Coupon generation occurs as part of the authoritative order/payment workflow after successful payment capture or another approved payment state.
+Order paid -> determine paid quantity -> generate N unique coupon records -> commit order + coupons transactionally -> publish VoucherIssued events -> notify customer.
+If coupon generation fails for any reason, the payment/order workflow must enter a recoverable state and retry idempotently. It must never create duplicate coupons for the same paid order line.
+17.5 Merchant App Sitemap
+Login / OTP / PIN / biometric unlock
+Dashboard: today's redemptions, active bookings, pending work orders, sales summary
+Scan Coupon QR
+Enter Coupon Code Manually
+Coupon Validation Result
+Redemption Confirmation
+Redemption Success / Receipt
+Recent Redemptions
+Search Coupon / Order / Customer Reference
+Booking Calendar
+Work Order Queue
+Work Order Details
+Customer Vehicle Summary
+Branch Selector
+Staff Profile / Permissions
+Device Management
+Support / Report an Issue
+Notifications
+Settings / Security / Logout
+17.6 Merchant App Screen Specifications
+Screen
+Required Fields / Actions
+Login
+Mobile/email, OTP, merchant organization, branch, optional PIN/biometric, device registration
+Dashboard
+Current branch, today redemptions, pending bookings, open work orders, quick actions
+Scan Coupon
+Camera permission, QR scanner, manual code fallback, branch context, torch toggle
+Manual Coupon Entry
+Coupon code, paste support, submit, clear, generic validation errors
+Validation Result
+Deal name, vehicle, customer first name/initials, branch eligibility, appointment, validity, amount paid, warning flags, VALID/INVALID state
+Redemption Confirmation
+Coupon summary, service included, branch, customer/vehicle reference, confirmation checkbox, optional staff note, CONFIRM REDEMPTION
+Success
+Redemption ID, timestamp, work order ID, service summary, next action OPEN WORK ORDER
+Recent Redemptions
+Date/time, offer, masked customer, vehicle, staff member, status, search/filter
+Work Order
+Vehicle, customer, included service, inspection, add-ons, technician, status, photos, notes, completion
+Issue / Dispute
+Reason code, notes, photos, coupon/order reference, submit support ticket
+17.7 Merchant Coupon Validation Flow
+Merchant staff logs in and is bound to an authorized merchant branch.
+Staff scans the customer QR code or enters the unique coupon code.
+App sends the token/code plus branch/device context to the validation API.
+Server verifies code/token authenticity, status, validity dates, merchant ownership, branch scope, booking requirement, vehicle eligibility and redemption policy.
+Server returns a non-destructive VALID or INVALID result with the minimum operational information needed by staff.
+Staff reviews the details with the customer and presses CONFIRM REDEMPTION.
+Server acquires a row-level lock or equivalent atomic claim on the coupon, re-checks all conditions, creates the redemption, marks the coupon REDEEMED and creates/links the work order in one transaction.
+App receives success and displays the redemption/work-order reference.
+Customer receives a redemption notification and the service becomes visible in service history.
+17.8 Redemption State Machine
+Coupon entitlement state:
+CREATED -> AVAILABLE -> VALIDATED -> REDEEMING -> REDEEMED -> SERVICE_COMPLETED
+Alternative terminal/exception paths:
+AVAILABLE -> EXPIRED
+AVAILABLE -> CANCELLED
+AVAILABLE -> REFUNDED
+AVAILABLE -> SUSPENDED
+REDEEMED -> REVERSED only through a privileged, reason-coded support/admin process
+REDEEMED -> DISPUTED when a merchant/customer case requires investigation; this does not automatically make the coupon reusable
+Validation itself must not change AVAILABLE to REDEEMED. The state transition occurs only on the authenticated redemption command.
+17.9 Redemption API Contract Additions
+Validate coupon:
+POST /v1/merchant/redemption/validate
+{ "coupon_code":"CE-OIL-7K4P9Q2M", "branch_id":"uuid", "device_id":"uuid" }
+Response 200:
+{ "valid": true, "coupon_id":"uuid", "offer":{"id":"uuid","title":"Full Synthetic Oil Change"}, "customer":{"display_name":"Khaled"}, "vehicle":{"make":"Toyota","model":"Corolla","year":2022,"plate_masked":"ABC-****"}, "booking":{"required":true,"starts_at":"2026-09-15T10:00:00+03:00"}, "eligibility":{"branch":true,"vehicle":true,"date":true}, "warnings":[] }
+Redeem coupon:
+POST /v1/merchant/redemption/redeem
+{ "coupon_id":"uuid", "branch_id":"uuid", "device_id":"uuid", "confirmation":true, "idempotency_key":"uuid" }
+Response 201:
+{ "redemption_id":"uuid", "coupon_id":"uuid", "status":"redeemed", "redeemed_at":"2026-09-15T10:02:17+03:00", "work_order_id":"uuid", "receipt_number":"CE-R-20260915-000812" }
+Search coupon history:
+GET /v1/merchant/redemption/search?q=CE-OIL-7K4P9Q2M&branch_id=uuid
+Reverse redemption (privileged only):
+POST /v1/merchant/redemption/{redemption_id}/reverse
+{ "reason_code":"DUPLICATE_ENTRY", "notes":"Accidentally redeemed twice at POS", "idempotency_key":"uuid" }
+17.10 Concurrency & Double-Redemption Protection
+The redemption endpoint must use a transaction with SELECT ... FOR UPDATE, an atomic compare-and-set, or an equivalent distributed lock strategy.
+Before creating the redemption, the service must re-read the coupon and validate that status=AVAILABLE (or the approved pre-redeem state).
+Only one redemption may win when two devices submit the same coupon concurrently.
+The losing request receives a deterministic ALREADY_REDEEMED response and never creates a second work order.
+Idempotency-Key is required for the redeem command. Repeating the same command with the same key returns the original successful response.
+A different idempotency key against an already-redeemed coupon must return an entitlement-state error, not another redemption.
+17.11 Unique Coupon Generation Pseudocode
+Pseudocode:
+FOR each paid quantity unit:  LOOP:    random_part = CSPRNG(10-14 characters)    candidate = normalized(prefix + random_part)    IF NOT exists(coupon_code_normalized=candidate):       INSERT coupon with unique constraint       BREAK    ELSE retry  generate independent qr_token with CSPRNGCOMMIT
+The database UNIQUE constraint is authoritative. Application-level existence checks are only an optimization and must not be treated as the final collision guarantee.
+17.12 Merchant Permissions
+Permission
+Owner
+Manager
+Cashier/Staff
+Technician
+View branch coupons
+R
+R
+R
+R
+Validate coupon
+C
+C
+C
+C
+Redeem coupon
+C
+C
+C
+C if allowed
+Reverse redemption
+-
+C with reason
+-
+-
+View all merchant redemptions
+R
+R
+R own/recent
+R work-order scope
+Manage offers
+CUD
+CUD
+-
+-
+Manage staff
+-
+CUD
+-
+-
+Manage branches
+-
+CUD
+-
+-
+View settlement/finance
+-
+R
+-
+-
+Manage work order
+-
+CUD
+U operational
+U assigned jobs
+Approve customer add-on
+-
+C
+-
+Propose only
+Access customer sensitive data
+limited
+limited
+minimum required
+minimum required
+17.13 Security Requirements for Merchant Redemption
+Every merchant device receives a registered device identity and is associated with a merchant/branch scope.
+A cashier cannot redeem coupons belonging to another merchant.
+Branch scope is checked server-side; the client must not be trusted to select an arbitrary branch.
+The app should support PIN/biometric re-entry for fast counter operations without keeping long-lived unrestricted sessions.
+Failed code attempts are rate-limited and logged for abuse detection.
+After repeated invalid-code attempts, impose progressive throttling and optionally require re-authentication.
+Never expose full payment card information, customer phone number or unnecessary personal information to cashiers.
+All redemption actions store actor, device, branch, timestamp and reason metadata.
+Admin/support reversal of a redeemed coupon must require a reason code and audit trail.
+Screenshots or clipboard export of coupon codes should be handled according to the chosen threat model; the server remains the source of truth.
+17.14 Merchant App Offline Strategy
+Recommended operating mode: online-by-default. Offline redemption is an optional controlled capability, not the default. If enabled, the merchant app receives signed, short-lived validation bundles for the branch. Offline redemption events are stored with monotonic sequence numbers, cryptographic signatures and device identity, then synchronized when connectivity returns. The server reconciles the event and rejects any conflicting or replayed redemption.
+17.15 Unique Coupon Lifecycle Example
+Example: the customer purchases 3 units of a "Full Synthetic Oil Change" deal.
+Order quantity = 3.
+Payment captured once for the order.
+System generates Coupon A, Coupon B and Coupon C as three separate rows.
+Coupon A = CE-OIL-7K4P9Q2M; Coupon B = CE-OIL-4N8X2T6P; Coupon C = CE-OIL-9R3L5W1K.
+Each has a unique QR token and independent redemption status.
+When Coupon B is redeemed, A and C remain AVAILABLE.
+If B is refunded before redemption, B moves to REFUNDED and cannot be redeemed.
+If B has already been redeemed, a later refund is handled by the refund/dispute policy and does not silently recreate an AVAILABLE coupon.
+17.16 Merchant UX Acceptance Criteria
+Merchant staff can reach Scan Coupon within one primary action after login.
+QR validation returns a clear result in <= 2 seconds under normal network conditions.
+A valid coupon clearly displays the exact service, vehicle and branch context before confirmation.
+An invalid or expired coupon clearly explains the operational reason without exposing sensitive system details.
+A successful redemption creates exactly one redemption record and exactly one primary work order for the coupon.
+Repeated submission of the same redemption request is idempotent.
+Two concurrent redemption attempts cannot both succeed.
+Each paid quantity generates a separate globally unique coupon code.
+Merchant staff cannot change the coupon value, offer, customer, expiry or branch scope from the redemption screen.
+Redemption history is searchable by coupon code, order number, date range and work-order reference.
+17.17 ERD Relationship Update
+Updated relationship model:
+OFFERS 1---N COUPON_TEMPLATESCOUPON_TEMPLATES 1---N COUPONSORDERS 1---N ORDER_ITEMSORDER_ITEMS 1---N COUPONSUSERS 1---N COUPONSVEHICLES 1---N COUPONSMERCHANTS 1---N COUPONSCOUPONS 1---N COUPON_EVENTSCOUPONS 1---0..1 REDEMPTIONS (standard single-use)REDEMPTIONS 1---1 WORK_ORDERSMERCHANTS 1---N MERCHANT_DEVICESMERCHANT_STAFF 1---N REDEMPTIONS
+17.18 Implementation Recommendation
+Treat the unique coupon service as a dedicated domain module rather than embedding redemption logic inside the merchant UI or general order service. The module owns issuance, uniqueness, validation, redemption, reversal, audit events and synchronization. The merchant app is a thin operational client over this authoritative service. This separation is essential for preventing duplicate redemption, enforcing merchant scope and supporting future channels such as web merchant portal, POS integration, partner APIs and kiosk redemption.
+Cars Empire Product Rule: Every purchased service entitlement is a unique coupon. Every unique coupon can be redeemed at most once unless an explicit multi-redemption policy is configured for that offer.
+Implementation Clarification: The Merchant App is an operational application for merchant owners/managers/cashiers, and the coupon engine guarantees one unique redeemable coupon code per purchased service unit. A deal does not have one reusable code; every sold unit receives a different code.

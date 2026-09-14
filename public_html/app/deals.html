@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarsEmpire - All Deals</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0041ff">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        
+        .pwa-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+        
+        .top-nav {
+            background-color: white;
+            padding: 10px 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #0041ff;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .logo img {
+            margin-right: 8px;
+        }
+        
+        .search-bar {
+            flex-grow: 1;
+            margin: 0 15px;
+            position: relative;
+        }
+        
+        .search-bar input {
+            width: 100%;
+            padding: 8px 12px 8px 40px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 0.9em;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .search-bar input:focus {
+            border-color: #0041ff;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: #333;
+        }
+        
+        .nav-icons {
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-icons button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            position: relative;
+            color: #333;
+        }
+        
+        .filters-section {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9em;
+            background: white;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #0041ff;
+            border-radius: 20px;
+            background: white;
+            color: #0041ff;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #0041ff;
+            color: white;
+        }
+        
+        .deals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 0 15px;
+        }
+        
+        .deal-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .deal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        
+        .deal-image {
+            width: 100%;
+            height: 150px;
+            background-color: #f4f4f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-size: 0.9em;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .deal-content {
+            padding: 15px;
+        }
+        
+        .deal-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .deal-description {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .deal-price {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 10px;
+        }
+        
+        .deal-original-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 0.9em;
+            margin-right: 8px;
+        }
+        
+        .deal-current-price {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #0041ff;
+            margin-right: 8px;
+        }
+        
+        .deal-discount {
+            background-color: #ffcb0f;
+            color: #000;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+        
+        .deal-merchant {
+            display: flex;
+            align-items: center;
+            font-size: 0.8em;
+            color: #555;
+        }
+        
+        .merchant-rating {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+        
+        .rating-stars {
+            color: #ffcb0f;
+            margin-right: 3px;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #888;
+            font-size: 0.75em;
+            font-weight: 500;
+            padding: 5px;
+            border-radius: 5px;
+            transition: color 0.2s, background-color 0.2s;
+        }
+        
+        .nav-item.active {
+            color: #0041ff;
+        }
+        
+        .nav-item:hover {
+            color: #0041ff;
+            background-color: #f4f4f4;
+        }
+        
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 3px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1em;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #0041ff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .deals-grid {
+                grid-template-columns: 1fr;
+                padding: 0 10px;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .filter-select {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pwa-container">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="nav-container">
+                <a href="./index.html" class="logo">
+                    <img src="./logo.png" alt="CarsEmpire Logo" width="40" height="40" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                    </svg>
+                    <span>CarsEmpire</span>
+                </a>
+                
+                <div class="search-bar">
+                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" placeholder="Search deals..." id="searchInput">
+                </div>
+
+                <div class="nav-icons">
+                    <button onclick="showFilters()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Filters Section -->
+        <div class="filters-section" id="filtersSection">
+            <div class="filter-row">
+                <select class="filter-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="insurance">Insurance</option>
+                    <option value="washing">Washing</option>
+                    <option value="finance">Finance</option>
+                    <option value="repair">Repair</option>
+                    <option value="tires">Tires</option>
+                </select>
+                
+                <select class="filter-select" id="carModelFilter">
+                    <option value="">All Car Models</option>
+                    <option value="toyota">Toyota</option>
+                    <option value="honda">Honda</option>
+                    <option value="bmw">BMW</option>
+                    <option value="mercedes">Mercedes</option>
+                    <option value="audi">Audi</option>
+                    <option value="nissan">Nissan</option>
+                </select>
+                
+                <select class="filter-select" id="priceFilter">
+                    <option value="">Any Price</option>
+                    <option value="0-50">$0 - $50</option>
+                    <option value="50-100">$50 - $100</option>
+                    <option value="100-200">$100 - $200</option>
+                    <option value="200+">$200+</option>
+                </select>
+            </div>
+            
+            <div class="filter-row">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterByRating('all')">All Ratings</button>
+                    <button class="filter-btn" onclick="filterByRating('4+')">4+ Stars</button>
+                    <button class="filter-btn" onclick="filterByRating('3+')">3+ Stars</button>
+                    <button class="filter-btn" onclick="filterByDistance('nearby')">Nearby</button>
+                    <button class="filter-btn" onclick="clearFilters()">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deals Grid -->
+        <div class="deals-grid" id="dealsGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                Loading deals...
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="./index.html" class="nav-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Home
+            </a>
+            <a href="./deals.html" class="nav-item active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592L6 15V4a1 1 0 011-1h2a1 1 0 011 1v1.882zM18 4v12.128a1.76 1.76 0 01-3.417.592L13 13V4a1 1 0 011-1h2a1 1 0 011 1v.882z"/>
+                </svg>
+                Offers
+            </a>
+            <a href="./orders.html" class="nav-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                My Orders
+            </a>
+            <a href="./account.html" class="nav-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                My Account
+            </a>
+        </nav>
+    </div>
+    
+    <script>
+        const API_BASE_URL = 'https://carsempire.net/api';
+        let currentFilters = {
+            category: '',
+            carModel: '',
+            price: '',
+            rating: 'all',
+            search: ''
+        };
+        
+        // API Helper Functions
+        async function fetchAPI(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return null;
+            }
+        }
+        
+        // Load deals with filters
+        async function loadDeals() {
+            const dealsGrid = document.getElementById('dealsGrid');
+            dealsGrid.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading deals...
+                </div>
+            `;
+            
+            try {
+                let endpoint = '/deals/deals/?status=active&ordering=-created_at';
+                
+                // Add filters to endpoint
+                const params = new URLSearchParams();
+                if (currentFilters.category) params.append('category', currentFilters.category);
+                if (currentFilters.search) params.append('search', currentFilters.search);
+                if (currentFilters.price) {
+                    const [min, max] = currentFilters.price.split('-');
+                    if (min) params.append('price_min', min);
+                    if (max) params.append('price_max', max);
+                }
+                
+                if (params.toString()) {
+                    endpoint += '&' + params.toString();
+                }
+                
+                const dealsData = await fetchAPI(endpoint);
+                if (dealsData && dealsData.results) {
+                    displayDeals(dealsData.results);
+                } else {
+                    showNoResults();
+                }
+            } catch (error) {
+                console.error('Error loading deals:', error);
+                showNoResults();
+            }
+        }
+        
+        // Display deals in the UI
+        function displayDeals(deals) {
+            const dealsGrid = document.getElementById('dealsGrid');
+            if (!dealsGrid) return;
+            
+            if (deals.length === 0) {
+                showNoResults();
+                return;
+            }
+            
+            dealsGrid.innerHTML = deals.map(deal => `
+                <div class="deal-card" onclick="showDealDetails(${deal.id})">
+                    <div class="deal-image" style="background-image: url('${deal.images?.[0]?.image || '/placeholder-deal.jpg'}'); background-size: cover; background-position: center;">
+                        ${!deal.images?.[0]?.image ? 'Deal Image' : ''}
+                    </div>
+                    <div class="deal-content">
+                        <h3 class="deal-title">${deal.title}</h3>
+                        <p class="deal-description">${deal.description.substring(0, 100)}...</p>
+                        <div class="deal-price">
+                            <span class="deal-original-price">$${deal.original_price}</span>
+                            <span class="deal-current-price">$${deal.discount_price}</span>
+                            <span class="deal-discount">${Math.round(((deal.original_price - deal.discount_price) / deal.original_price) * 100)}% OFF</span>
+                        </div>
+                        <div class="deal-merchant">
+                            <div class="merchant-info">
+                                <span class="merchant-name">${deal.merchant?.name || 'Merchant'}</span>
+                                <div class="merchant-rating">
+                                    <span class="rating-stars">★★★★☆</span>
+                                    <span class="rating-value">4.5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function showNoResults() {
+            const dealsGrid = document.getElementById('dealsGrid');
+            dealsGrid.innerHTML = `
+                <div class="no-results">
+                    <h3>No deals found</h3>
+                    <p>Try adjusting your filters or search terms</p>
+                </div>
+            `;
+        }
+        
+        // Filter functions
+        function filterByRating(rating) {
+            currentFilters.rating = rating;
+            updateFilterButtons();
+            loadDeals();
+        }
+        
+        function filterByDistance(distance) {
+            // Implement location-based filtering
+            alert('Location-based filtering coming soon!');
+        }
+        
+        function clearFilters() {
+            currentFilters = {
+                category: '',
+                carModel: '',
+                price: '',
+                rating: 'all',
+                search: ''
+            };
+            
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('carModelFilter').value = '';
+            document.getElementById('priceFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            
+            updateFilterButtons();
+            loadDeals();
+        }
+        
+        function updateFilterButtons() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (currentFilters.rating === 'all') {
+                document.querySelector('.filter-btn').classList.add('active');
+            } else {
+                const ratingBtn = document.querySelector(`[onclick="filterByRating('${currentFilters.rating}')"]`);
+                if (ratingBtn) ratingBtn.classList.add('active');
+            }
+        }
+        
+        function showFilters() {
+            const filtersSection = document.getElementById('filtersSection');
+            filtersSection.style.display = filtersSection.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function showDealDetails(dealId) {
+            // Navigate to deal details page
+            window.location.href = `./deal-details.html?id=${dealId}`;
+        }
+        
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            currentFilters.search = e.target.value;
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                loadDeals();
+            }, 500);
+        });
+        
+        document.getElementById('categoryFilter').addEventListener('change', function(e) {
+            currentFilters.category = e.target.value;
+            loadDeals();
+        });
+        
+        document.getElementById('carModelFilter').addEventListener('change', function(e) {
+            currentFilters.carModel = e.target.value;
+            loadDeals();
+        });
+        
+        document.getElementById('priceFilter').addEventListener('change', function(e) {
+            currentFilters.price = e.target.value;
+            loadDeals();
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDeals();
+        });
+    </script>
+</body>
+</html>

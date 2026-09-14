@@ -1,0 +1,268 @@
+{% extends 'profile_base.html' %}
+{% load static %}
+
+{% block title %}My Vehicles - My Profile - Cars Empire{% endblock %}
+
+{% block profile_content %}
+    <h4>My Vehicles</h4>
+    <hr>
+    <div class="mb-3">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
+            Add New Vehicle
+        </button>
+    </div>
+
+    <div id="vehicles-list" class="row">
+        <!-- Vehicles will be loaded here -->
+    </div>
+
+    <!-- Add Vehicle Modal -->
+    <div class="modal fade" id="addVehicleModal" tabindex="-1" aria-labelledby="addVehicleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addVehicleModalLabel">Add New Vehicle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-vehicle-form">
+                        <div class="mb-3">
+                            <label for="vehicleMake" class="form-label">Make</label>
+                            <select class="form-select" id="vehicleMake" name="make" required>
+                                <option value="">Select Make</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="vehicleModel" class="form-label">Model</label>
+                            <select class="form-select" id="vehicleModel" name="model" required>
+                                <option value="">Select Model</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-vehicle-btn">Save Vehicle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Vehicle Modal -->
+    <div class="modal fade" id="editVehicleModal" tabindex="-1" aria-labelledby="editVehicleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editVehicleModalLabel">Edit Vehicle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-vehicle-form">
+                        <input type="hidden" id="editVehicleId">
+                        <div class="mb-3">
+                            <label for="editVehicleMake" class="form-label">Make</label>
+                            <select class="form-select" id="editVehicleMake" name="make" required>
+                                <option value="">Select Make</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editVehicleModel" class="form-label">Model</label>
+                            <select class="form-select" id="editVehicleModel" name="model" required>
+                                <option value="">Select Model</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="update-vehicle-btn">Update Vehicle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+async function initializeProfileContent(profile) {
+    await loadVehicles();
+    await loadCarMakes();
+    setupEventListeners();
+}
+
+async function loadVehicles() {
+    try {
+        const vehicles = await api.vehicles.getAll();
+        const vehiclesList = document.getElementById('vehicles-list');
+        vehiclesList.innerHTML = '';
+        if (vehicles.length === 0) {
+            vehiclesList.innerHTML = '<div class="col-12"><p class="text-muted">No vehicles added yet.</p></div>';
+            return;
+        }
+        vehicles.forEach(vehicle => {
+            const vehicleCard = createVehicleCard(vehicle);
+            vehiclesList.appendChild(vehicleCard);
+        });
+    } catch (error) {
+        console.error('Failed to load vehicles:', error);
+        showError('Failed to load vehicles');
+    }
+}
+
+function createVehicleCard(vehicle) {
+    const col = document.createElement('div');
+    col.className = 'col-md-6 mb-3';
+    col.innerHTML = `
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">${vehicle.make_name || ''} ${vehicle.model_name || ''}</h5>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-primary edit-vehicle" data-id="${vehicle.id}">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger delete-vehicle" data-id="${vehicle.id}">Delete</button>
+                </div>
+            </div>
+        </div>
+    `;
+    return col;
+}
+
+async function loadCarMakes() {
+    try {
+        const makes = await api.cars.getMakes();
+        const makeList = Array.isArray(makes) ? makes : (makes.results || []);
+        const makeSelect = document.getElementById('vehicleMake');
+        makeSelect.innerHTML = '<option value="">Select Make</option>';
+        makeList.forEach(make => {
+            const option = document.createElement('option');
+            option.value = make.id;
+            option.textContent = make.name;
+            makeSelect.appendChild(option);
+        });
+        makeSelect.addEventListener('change', async (e) => {
+            const makeId = e.target.value;
+            if (makeId) {
+                await loadCarModels(makeId);
+            } else {
+                const modelSelect = document.getElementById('vehicleModel');
+                modelSelect.innerHTML = '<option value="">Select Model</option>';
+            }
+        });
+    } catch (error) {
+        console.error('Failed to load car makes:', error);
+        showError('Failed to load car makes');
+    }
+}
+
+async function loadCarModels(makeId) {
+    try {
+        const models = await api.cars.getModels(makeId);
+        const modelList = Array.isArray(models) ? models : (models.results || []);
+        const modelSelect = document.getElementById('vehicleModel');
+        modelSelect.innerHTML = '<option value="">Select Model</option>';
+        modelList.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model.id;
+            option.textContent = model.name;
+            modelSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Failed to load car models:', error);
+        showError('Failed to load car models');
+    }
+}
+
+function setupEventListeners() {
+    // Save vehicle button
+    const saveVehicleBtn = document.getElementById('save-vehicle-btn');
+    saveVehicleBtn.addEventListener('click', async () => {
+        const form = document.getElementById('add-vehicle-form');
+        const formData = new FormData(form);
+        const vehicleData = {
+            make_id: formData.get('make'),
+            model_id: formData.get('model')
+        };
+        try {
+            await api.vehicles.add(vehicleData);
+            bootstrap.Modal.getInstance(document.getElementById('addVehicleModal')).hide();
+            form.reset();
+            await loadVehicles();
+        } catch (error) {
+            console.error('Failed to add vehicle:', error);
+            showError('Failed to add vehicle');
+        }
+    });
+
+    // Edit and delete buttons
+    document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('edit-vehicle')) {
+            const vehicleId = e.target.dataset.id;
+            const vehicles = await api.vehicles.getAll();
+            const vehicle = vehicles.find(v => v.id == vehicleId);
+            if (!vehicle) return;
+            document.getElementById('editVehicleId').value = vehicle.id;
+            await loadEditCarMakes(vehicle.make, vehicle.model);
+            const editModal = new bootstrap.Modal(document.getElementById('editVehicleModal'));
+            editModal.show();
+        } else if (e.target.classList.contains('delete-vehicle')) {
+            const vehicleId = e.target.dataset.id;
+            if (confirm('Are you sure you want to delete this vehicle?')) {
+                try {
+                    await api.vehicles.delete(vehicleId);
+                    await loadVehicles();
+                } catch (error) {
+                    console.error('Failed to delete vehicle:', error);
+                    showError('Failed to delete vehicle');
+                }
+            }
+        }
+    });
+}
+
+async function loadEditCarMakes(selectedMake, selectedModel) {
+    const makes = await api.cars.getMakes();
+    const makeList = Array.isArray(makes) ? makes : (makes.results || []);
+    const makeSelect = document.getElementById('editVehicleMake');
+    makeSelect.innerHTML = '<option value="">Select Make</option>';
+    makeList.forEach(make => {
+        const option = document.createElement('option');
+        option.value = make.id;
+        option.textContent = make.name;
+        if (make.id == selectedMake) option.selected = true;
+        makeSelect.appendChild(option);
+    });
+    await loadEditCarModels(selectedMake, selectedModel);
+    makeSelect.addEventListener('change', async (e) => {
+        await loadEditCarModels(e.target.value, null);
+    });
+}
+
+async function loadEditCarModels(makeId, selectedModel) {
+    const models = await api.cars.getModels(makeId);
+    const modelList = Array.isArray(models) ? models : (models.results || []);
+    const modelSelect = document.getElementById('editVehicleModel');
+    modelSelect.innerHTML = '<option value="">Select Model</option>';
+    modelList.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.id;
+        option.textContent = model.name;
+        if (model.id == selectedModel) option.selected = true;
+        modelSelect.appendChild(option);
+    });
+}
+
+document.getElementById('update-vehicle-btn').addEventListener('click', async () => {
+    const id = document.getElementById('editVehicleId').value;
+    const make = document.getElementById('editVehicleMake').value;
+    const model = document.getElementById('editVehicleModel').value;
+    try {
+        await api.vehicles.update(id, { make_id: make, model_id: model });
+        bootstrap.Modal.getInstance(document.getElementById('editVehicleModal')).hide();
+        await loadVehicles();
+    } catch (error) {
+        showError('Failed to update vehicle');
+    }
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,665 @@
+4. Data Model / ERD
+The ERD below is intentionally relational and ledger-oriented. Monetary and status transitions are recorded as facts rather than overwritten totals. UUIDs are recommended as primary keys.
+USERS 1---1 USER_PROFILES
+USERS 1---N USER_ADDRESSES
+USERS 1---N USER_DEVICES
+USERS 1---N VEHICLES
+MERCHANTS 1---N MERCHANT_BRANCHES
+MERCHANTS 1---N MERCHANT_STAFF
+MERCHANTS 1---N MERCHANT_SERVICES
+MERCHANTS 1---N OFFERS
+MERCHANT_BRANCHES N---N OFFERS (OFFER_BRANCHES)
+VEHICLE_MAKES 1---N VEHICLE_MODELS
+VEHICLE_MODELS 1---N VEHICLE_TRIMS
+OFFERS 1---N OFFER_VARIANTS
+OFFERS 1---N OFFER_MEDIA
+OFFERS 1---N OFFER_TERMS
+OFFERS N---N CATEGORIES
+OFFERS N---N TAGS
+USERS 1---N CARTS
+CARTS 1---N CART_ITEMS
+USERS 1---N ORDERS
+ORDERS 1---N ORDER_ITEMS
+ORDER_ITEMS N---1 OFFERS
+ORDER_ITEMS N---1 VEHICLES
+ORDER_ITEMS 0..N---1 BOOKING_SLOTS
+ORDERS 1---N PAYMENTS
+PAYMENTS 1---N PAYMENT_EVENTS
+ORDERS 1---N REFUNDS
+ORDER_ITEMS 1---N VOUCHERS
+VOUCHERS 1---N VOUCHER_EVENTS
+VOUCHERS 0..1---1 REDEMPTIONS
+REDEMPTIONS 0..1---1 WORK_ORDERS
+WORK_ORDERS 1---N WORK_ORDER_ITEMS
+WORK_ORDERS 1---N WORK_ORDER_EVENTS
+VEHICLES 1---N SERVICE_RECORDS
+SERVICE_RECORDS N---1 WORK_ORDERS
+USERS 1---1 WALLETS
+WALLETS 1---N WALLET_TRANSACTIONS
+USERS 1---N REWARD_TRANSACTIONS
+ORDERS 1---N NOTIFICATIONS
+ORDERS 0..N---N SUPPORT_TICKETS
+USERS 1---N REVIEWS
+OFFERS 1---N REVIEWS
+MERCHANTS 1---N REVIEWS
+MERCHANTS 1---N SETTLEMENTS
+SETTLEMENTS 1---N SETTLEMENT_ITEMS
+ORDERS 1---N SETTLEMENT_ITEMS
+USERS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+phone
+varchar(32)
+UQ
+Normalized E.164
+email
+varchar(255)
+UQ
+Nullable
+password_hash
+text
+Nullable for OTP/social only
+status
+enum
+active/suspended/deleted
+locale
+varchar(10)
+created_at
+timestamptz
+updated_at
+timestamptz
+USER_PROFILES
+Field
+Type
+Key
+Notes
+user_id
+uuid
+PK/FK
+users.id
+first_name
+varchar(80)
+last_name
+varchar(80)
+avatar_url
+text
+marketing_opt_in
+boolean
+location_consent
+boolean
+VEHICLES
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+user_id
+uuid
+FK
+users.id
+license_plate
+varchar(32)
+Normalized
+make_id
+uuid
+FK
+vehicle_makes.id
+model_id
+uuid
+FK
+vehicle_models.id
+trim_id
+uuid
+FK
+vehicle_trims.id
+year
+smallint
+mileage_km
+integer
+fuel_type
+enum
+is_primary
+boolean
+status
+enum
+active/archived
+created_at
+timestamptz
+MERCHANTS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+legal_name
+varchar(255)
+display_name
+varchar(255)
+status
+enum
+applied/under_review/active/suspended/rejected
+tax_id
+varchar(64)
+commercial_reg_no
+varchar(64)
+description
+text
+rating_avg
+numeric(3,2)
+Denormalized
+created_at
+timestamptz
+MERCHANT_BRANCHES
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+merchant_id
+uuid
+FK
+merchants.id
+name
+varchar(255)
+address
+text
+city_id
+uuid
+FK
+cities.id
+area_id
+uuid
+FK
+areas.id
+latitude
+numeric(9,6)
+longitude
+numeric(9,6)
+phone
+varchar(32)
+service_radius_km
+numeric(8,2)
+For mobile service
+status
+enum
+active/inactive
+MERCHANT_SERVICES
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+merchant_id
+uuid
+FK
+merchants.id
+name
+varchar(255)
+category_id
+uuid
+FK
+categories.id
+base_price
+numeric(12,2)
+duration_min
+integer
+requires_booking
+boolean
+mobile_supported
+boolean
+OFFERS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+merchant_id
+uuid
+FK
+merchants.id
+service_id
+uuid
+FK
+merchant_services.id
+title
+varchar(255)
+slug
+varchar(255)
+UQ
+description
+text
+offer_type
+enum
+coupon/booking/package
+compare_at_price
+numeric(12,2)
+sale_price
+numeric(12,2)
+capacity
+integer
+sale_start
+timestamptz
+sale_end
+timestamptz
+valid_from
+timestamptz
+valid_until
+timestamptz
+status
+enum
+draft/review/scheduled/live/paused/expired/archived
+ORDERS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+order_number
+varchar(32)
+UQ
+Human-friendly
+user_id
+uuid
+FK
+users.id
+currency
+char(3)
+EGP default
+subtotal
+numeric(12,2)
+discount_total
+numeric(12,2)
+fee_total
+numeric(12,2)
+tax_total
+numeric(12,2)
+wallet_total
+numeric(12,2)
+grand_total
+numeric(12,2)
+status
+enum
+created/pending_payment/paid/processing/completed/cancelled/refunded/failed
+created_at
+timestamptz
+ORDER_ITEMS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+order_id
+uuid
+FK
+orders.id
+offer_id
+uuid
+FK
+offers.id
+vehicle_id
+uuid
+FK
+vehicles.id
+branch_id
+uuid
+FK
+merchant_branches.id
+quantity
+integer
+unit_price
+numeric(12,2)
+discount_amount
+numeric(12,2)
+line_total
+numeric(12,2)
+booking_required
+boolean
+BOOKING_SLOTS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+branch_id
+uuid
+FK
+merchant_branches.id
+service_id
+uuid
+FK
+merchant_services.id
+starts_at
+timestamptz
+ends_at
+timestamptz
+capacity
+integer
+reserved_count
+integer
+status
+enum
+open/blocked/closed
+PAYMENTS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+order_id
+uuid
+FK
+orders.id
+provider
+varchar(64)
+provider_transaction_id
+varchar(255)
+amount
+numeric(12,2)
+currency
+char(3)
+status
+enum
+initiated/pending/authorized/captured/failed/refunded
+idempotency_key
+varchar(128)
+UQ
+created_at
+timestamptz
+VOUCHERS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+order_item_id
+uuid
+FK
+order_items.id
+customer_id
+uuid
+FK
+users.id
+merchant_id
+uuid
+FK
+merchants.id
+branch_id
+uuid
+FK
+merchant_branches.id
+code_hash
+char(64)
+Store hash, not plaintext if possible
+display_code
+varchar(32)
+Optional masked code
+qr_token_hash
+char(64)
+Opaque token hash
+status
+enum
+available/reserved/redeemed/cancelled/refunded/expired/suspended
+valid_from
+timestamptz
+valid_until
+timestamptz
+REDEMPTIONS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+voucher_id
+uuid
+FK/UQ
+vouchers.id
+merchant_id
+uuid
+FK
+merchants.id
+branch_id
+uuid
+FK
+merchant_branches.id
+staff_user_id
+uuid
+FK
+merchant_staff.id
+redeemed_at
+timestamptz
+method
+enum
+qr/code/manual
+notes
+text
+WORK_ORDERS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+redemption_id
+uuid
+FK
+redemptions.id
+vehicle_id
+uuid
+FK
+vehicles.id
+merchant_id
+uuid
+FK
+merchants.id
+branch_id
+uuid
+FK
+merchant_branches.id
+technician_id
+uuid
+FK
+merchant_staff.id
+status
+enum
+opened/diagnosing/awaiting_approval/in_progress/completed/cancelled
+arrival_mileage_km
+integer
+completion_note
+text
+started_at
+timestamptz
+completed_at
+timestamptz
+WORK_ORDER_ITEMS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+work_order_id
+uuid
+FK
+work_orders.id
+service_id
+uuid
+FK
+merchant_services.id
+description
+text
+quantity
+numeric(10,2)
+unit_price
+numeric(12,2)
+customer_approved
+boolean
+source
+enum
+included/addon/manual
+status
+enum
+proposed/approved/completed/rejected
+WALLETS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+user_id
+uuid
+FK/UQ
+users.id
+currency
+char(3)
+available_balance
+numeric(12,2)
+Denormalized; ledger is source of truth
+WALLET_TRANSACTIONS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+wallet_id
+uuid
+FK
+wallets.id
+type
+enum
+credit/debit/refund/cashback/adjustment/expiry
+amount
+numeric(12,2)
+Positive magnitude
+reference_type
+varchar(64)
+reference_id
+uuid
+created_at
+timestamptz
+REVIEWS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+user_id
+uuid
+FK
+users.id
+merchant_id
+uuid
+FK
+merchants.id
+offer_id
+uuid
+FK
+offers.id
+order_id
+uuid
+FK
+orders.id
+rating
+smallint
+1..5
+comment
+text
+status
+enum
+pending/published/hidden/rejected
+created_at
+timestamptz
+SETTLEMENTS
+Field
+Type
+Key
+Notes
+id
+uuid
+PK
+merchant_id
+uuid
+FK
+merchants.id
+period_start
+date
+period_end
+date
+gross_amount
+numeric(12,2)
+commission_amount
+numeric(12,2)
+refund_amount
+numeric(12,2)
+net_amount
+numeric(12,2)
+status
+enum
+draft/approved/processing/paid/held
+4.1 Advertising ERD Additions
+AD_SLOTS 1---N AD_CAMPAIGNS
+MERCHANTS 1---N AD_CAMPAIGNS
+AD_CAMPAIGNS 1---N AD_CREATIVES
+AD_CAMPAIGNS 1---N AD_TARGETS
+AD_CAMPAIGNS 1---N AD_BOOKINGS
+AD_CAMPAIGNS 1---N AD_BILLING_EVENTS
+AD_CAMPAIGNS 1---N AD_PERFORMANCE_DAILY
+AD_CAMPAIGNS N---N OFFERS (AD_CAMPAIGN_OFFERS)
+AD_CAMPAIGNS N---N MERCHANT_BRANCHES (AD_CAMPAIGN_BRANCHES)
+AD_IMPRESSIONS N---1 AD_CAMPAIGNS
+AD_CLICKS N---1 AD_CAMPAIGNS
+Recommended advertising tables and key fields:
+Entity
+Key Fields
+AD_SLOTS
+id, slot_key, name, surface, placement_position, app_enabled, web_enabled, status
+AD_CAMPAIGNS
+id, merchant_id, slot_id, name, status, pricing_model, start_at, end_at, budget, priority_tier, destination_type, destination_id, payment_status
+AD_CREATIVES
+id, campaign_id, locale, image_url, mobile_image_url, headline, body, cta_label, alt_text, version, approval_status
+AD_TARGETS
+id, campaign_id, target_type, city_id, area_id, radius_km, category_id, vehicle_make_id, vehicle_model_id, audience_segment, frequency_cap
+AD_BOOKINGS
+id, campaign_id, slot_id, date_from, date_to, reserved_impressions, reserved_budget, exclusivity, booking_status
+AD_IMPRESSIONS
+id, campaign_id, slot_id, request_id, impression_id, user_id, device_id, served_at, viewable_at, city_id
+AD_CLICKS
+id, campaign_id, impression_id, click_id, user_id, clicked_at, destination_type, destination_id
+AD_BILLING_EVENTS
+id, campaign_id, event_type, quantity, unit_price, amount, provider_reference, event_at, idempotency_key
+AD_PERFORMANCE_DAILY
+campaign_id, date, impressions, viewable_impressions, clicks, spend, attributed_orders, attributed_revenue

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} - Category | Cars Empire{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Category Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'deals' %}">Deals</a></li>
+                    {% if category.parent %}
+                        <li class="breadcrumb-item"><a href="{% url 'category_detail' category.parent.id %}">{{ category.parent.name }}</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+                </ol>
+            </nav>
+            <h2 class="text-center mb-3">{{ category.name }}</h2>
+            {% if category.description %}
+                <p class="text-muted text-center">{{ category.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Advertisement Block -->
+    {% if advert and advert.images.count or advert.videos.count %}
+      <div class="advert-block mb-4">
+        {% include "advert_block.html" %}
+      </div>
+    {% endif %}
+
+    <!-- Merchants Section -->
+    {% if merchants %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4">
+                <i class="fas fa-store me-2"></i>Merchants in this Category
+            </h3>
+            <div class="row">
+                {% for merchant in merchants %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if merchant.logo %}
+                        <img src="{{ merchant.logo.url }}" class="card-img-top" alt="{{ merchant.name }} logo" style="max-height: 120px; object-fit: contain; padding: 1rem;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ merchant.name }}</h5>
+                            {% if merchant.description %}
+                                <p class="card-text text-muted">{{ merchant.description|truncatechars:100 }}</p>
+                            {% endif %}
+                            {% if merchant.rating %}
+                                <div class="mb-2">
+                                    <small class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= merchant.rating %}
+                                                ★
+                                            {% else %}
+                                                ☆
+                                            {% endif %}
+                                        {% endfor %}
+                                        {{ merchant.rating }}/5
+                                    </small>
+                                </div>
+                            {% endif %}
+                            <a href="{% url 'merchant_detail' merchant.id %}" class="btn btn-primary">
+                                <i class="fas fa-eye me-1"></i>View Merchant
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Deals Section -->
+    {% if deals %}
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4">
+                <i class="fas fa-tags me-2"></i>Deals in this Category
+            </h3>
+            <div class="row">
+                {% for deal in deals %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if deal.images.first %}
+                        <img src="{{ deal.images.first.image.url }}" class="card-img-top" alt="{{ deal.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <img src="https://via.placeholder.com/300x200.png?text=Deal+Image" class="card-img-top" alt="Deal Placeholder Image" style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ deal.title }}</h5>
+                            <p class="card-text text-muted">{{ deal.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="h5 text-danger mb-0">EGP {{ deal.discount_price }}</span>
+                                    <small class="text-muted text-decoration-line-through ms-2">EGP {{ deal.original_price }}</small>
+                                </div>
+                                <span class="badge bg-success">{{ deal.discount_percentage }}% OFF</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pb-3">
+                            {% if deal.slug %}
+                                <a href="{% url 'deal-detail' deal.slug %}" class="btn btn-primary w-100">
+                                    <i class="fas fa-eye me-1"></i>View Deal
+                                </a>
+                            {% else %}
+                                <a href="{% url 'deal-detail' deal.id %}" class="btn btn-primary w-100">
+                                    <i class="fas fa-eye me-1"></i>View Deal
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Empty State -->
+    {% if not merchants and not deals %}
+    <div class="row">
+        <div class="col-12 text-center">
+            <div class="card">
+                <div class="card-body py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Content Found</h4>
+                    <p class="text-muted">No merchants or deals are currently available in this category.</p>
+                    <a href="{% url 'deals' %}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-1"></i>Browse All Deals
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

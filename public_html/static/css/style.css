@@ -1,0 +1,269 @@
+body {
+    background-color: #f8f9fa;
+}
+
+/* Map Styles */
+#merchant-map {
+    height: 500px;
+    width: 100%;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.map-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.map-error {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 10px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+}
+
+.map-controls .btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.map-controls .btn:hover {
+    background: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Merchant Popup Styles */
+.merchant-popup {
+    padding: 10px;
+    min-width: 200px;
+}
+
+.merchant-popup h5 {
+    margin: 0 0 10px;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.merchant-popup p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.merchant-popup .btn {
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* Rating Stars */
+.rating-stars {
+    margin: 5px 0;
+    color: #ffc107;
+}
+
+.rating-stars i {
+    margin-right: 2px;
+}
+
+.rating-value {
+    margin-left: 5px;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    #merchant-map {
+        height: 300px;
+    }
+
+    .map-controls {
+        top: auto;
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .merchant-popup {
+        min-width: 150px;
+    }
+}
+
+/* Merchant Map Styles */
+.merchant-map {
+    height: 500px;
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.map-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.map-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.map-error {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff4444;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Merchant Popup Styles */
+.merchant-popup {
+    padding: 15px;
+    max-width: 300px;
+}
+
+.merchant-popup h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #333;
+}
+
+.merchant-logo {
+    width: 100%;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.merchant-rating {
+    margin: 10px 0;
+    color: #f1c40f;
+}
+
+.merchant-rating .rating-value {
+    margin-left: 5px;
+    color: #666;
+}
+
+.merchant-social {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.merchant-social a {
+    color: #666;
+    font-size: 18px;
+    transition: color 0.3s;
+}
+
+.merchant-social a:hover {
+    color: #3498db;
+}
+
+.view-merchant-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-top: 10px;
+    transition: background 0.3s;
+}
+
+.view-merchant-btn:hover {
+    background: #2980b9;
+}
+
+/* Loading Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .merchant-map {
+        height: 300px;
+    }
+
+    .merchant-popup {
+        max-width: 250px;
+    }
+
+    .merchant-logo {
+        height: 80px;
+    }
+}
+
+/* Error Message Styles */
+.error-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ff4444;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
