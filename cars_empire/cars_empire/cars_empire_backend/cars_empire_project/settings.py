@@ -2,12 +2,19 @@ from pathlib import Path
 import os
 from datetime import timedelta
 
+# Install PyMySQL as MySQLdb if available
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-3_a6ag-sieg3ww$yv^ag=*q66s55gxxpk!dp5k^0k(=+@j-d0*'
-DEBUG = False
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-3_a6ag-sieg3ww$yv^ag=*q66s55gxxpk!dp5k^0k(=+@j-d0*')
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = ['carsempire.net', 'www.carsempire.net', 'mail.carsempire.net', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*'] if os.environ.get('VERCEL') else ['carsempire.net', 'www.carsempire.net', 'mail.carsempire.net', 'localhost', '127.0.0.1']
 
 # Character encoding settings
 DEFAULT_CHARSET = 'utf-8'
@@ -42,6 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -74,21 +82,39 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cars_empire_project.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'carsempire_db',
-        'USER': 'carsempire_user',
-        'PASSWORD': 'P@ssw0rd1986',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES', NAMES utf8mb4",
-            'use_unicode': True,
-        },
+if os.environ.get('VERCEL') or os.environ.get('DATABASE_URL'):
+    DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
+    if DATABASE_URL:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+            )
+        }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': '/tmp/db.sqlite3' if os.environ.get('VERCEL') else str(BASE_DIR / 'db.sqlite3'),
+            }
+        }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'carsempire_db',
+            'USER': 'carsempire_user',
+            'PASSWORD': 'P@ssw0rd1986',
+            'HOST': 'localhost',
+            'PORT': '3306',
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES', NAMES utf8mb4",
+                'use_unicode': True,
+            },
+        }
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
