@@ -61,7 +61,24 @@ def setup_db_view(request):
         err = "ERROR: Migration failed:\n\n" + traceback.format_exc()
         return HttpResponse(err, content_type='text/plain; charset=utf-8', status=500)
 
+def pwa_app_view(request):
+    import os
+    candidate_paths = [
+        os.path.join(settings.BASE_DIR, '../../public/app/index.html'),
+        os.path.join(settings.BASE_DIR, '../public/app/index.html'),
+        os.path.join(settings.BASE_DIR, 'public/app/index.html'),
+        os.path.join(os.getcwd(), 'public/app/index.html'),
+        os.path.join(os.getcwd(), 'public_html/app/index.html'),
+    ]
+    for p in candidate_paths:
+        if os.path.exists(p):
+            with open(p, 'r', encoding='utf-8') as f:
+                return HttpResponse(f.read(), content_type='text/html; charset=utf-8')
+    return HttpResponse("Cars Empire PWA Shell Loading...", content_type='text/html')
+
 urlpatterns = [
+    path('app/', pwa_app_view, name='pwa-app-slash'),
+    path('app', pwa_app_view, name='pwa-app'),
     path('setup-db/', setup_db_view, name='setup-db'),
     path('setup-db', setup_db_view),
     path('admin/', admin.site.urls),
