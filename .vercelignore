@@ -1,4 +1,4 @@
-﻿# Exclude heavy media from serverless python lambda
+# Exclude heavy media from serverless python lambda
 public_html/media/
 cars_empire/**/media/
 cars_empire/**/staticfiles/
@@ -6,10 +6,11 @@ staticfiles/
 media/
 Images_for_waffarha_app/
 
-# Exclude documentation and word files
+# Exclude documentation files only (DO NOT EXCLUDE requirements.txt)
 *.docx
 *.pdf
-*.txt
+prd_*.txt
+extracted_docx_text.txt
 *.md
 
 # Exclude archives
