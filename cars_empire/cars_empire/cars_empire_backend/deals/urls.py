@@ -11,6 +11,7 @@ router.register(r'notifications', views.NotificationViewSet, basename='notificat
 
 # Frontend URLs
 urlpatterns = [
+    path('', views.deals_page, name='deals-home'),
     path('page/', views.deals_page, name='deals'),
     path('<slug:slug>/', views.deal_detail, name='deal-detail'),
 ]

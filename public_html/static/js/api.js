@@ -1,5 +1,7 @@
 // API Configuration
-const API_BASE_URL = 'https://carsempire.net/api';
+const API_BASE_URL = (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.startsWith('http'))
+    ? window.location.origin + '/api'
+    : 'https://carsempire.net/api';
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {

@@ -51,27 +51,11 @@ def setup_db_view(request):
         from django.core.management import call_command
         call_command('migrate', interactive=False, stdout=out, stderr=out)
         try:
-            from django.contrib.auth import get_user_model
-            User = get_user_model()
-            admin_email = 'admin@carsempire.net'
-            admin_user = User.objects.filter(email=admin_email).first()
-            if not admin_user:
-                admin_user = User.objects.create_superuser(
-                    email=admin_email,
-                    password='Admin123456!',
-                    phone='+201000000000',
-                    username='admin'
-                )
-                out.write(f"\nDefault admin created successfully!\nEmail: {admin_email}\nPassword: Admin123456!\n")
-            else:
-                admin_user.set_password('Admin123456!')
-                admin_user.is_staff = True
-                admin_user.is_superuser = True
-                admin_user.save()
-                out.write(f"\nDefault admin credentials set!\nEmail: {admin_email}\nPassword: Admin123456!\n")
-        except Exception as user_err:
-            out.write(f"\nUser creation check note: {user_err}\n")
-        result = "SUCCESS: Database migrated successfully!\n\n" + out.getvalue()
+            from cars_empire_project.seed_data import seed_demo_data
+            seed_demo_data(out=out)
+        except Exception as seed_err:
+            out.write(f"\nSeed demo data note: {seed_err}\n")
+        result = "SUCCESS: Database migrated and seeded successfully!\n\n" + out.getvalue()
         return HttpResponse(result, content_type='text/plain; charset=utf-8')
     except Exception:
         err = "ERROR: Migration failed:\n\n" + traceback.format_exc()
@@ -82,22 +66,7 @@ urlpatterns = [
     path('setup-db', setup_db_view),
     path('admin/', admin.site.urls),
     
-    # Main website URLs
-    path('', include('cars.urls')),
-    path('deals/', include('deals.urls')),
-    path('merchants/', include('merchants.urls')),
-    path('coupons/', include('coupons.urls')),
-    path('users/', include('users.urls')),
-    path('cart/', include('cart.urls')),
-    path('payments/', include('payments.urls')),
-    path('reviews/', include('reviews.urls')),
-    path('blog/', include('blog.urls')),
-    path('pages/', include('pages.urls')),
-    
-    # PWA URLs
-    path('pwa/', include('pwa.urls')),
-    
-    # API URLs
+    # API URLs (Prioritized before HTML views)
     path('api/', include([
         path('users/', include('users.urls')),
         path('deals/', include('deals.api_urls')),
@@ -107,7 +76,7 @@ urlpatterns = [
         path('categories/', include('categories.urls')),
         path('reviews/', include('reviews.urls')),
         path('payments/', include('payments.urls')),
-        path('cars/', include('cars.urls')),
+        path('cars/', include('cars.api_urls')),
         path('auth/', include('djoser.urls')),
         path('auth/', include('djoser.urls.jwt')),
     ])),
@@ -115,6 +84,21 @@ urlpatterns = [
     # API Documentation
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    
+    # PWA URLs
+    path('pwa/', include('pwa.urls')),
+    
+    # Main website URLs
+    path('deals/', include('deals.urls')),
+    path('merchants/', include('merchants.urls')),
+    path('coupons/', include('coupons.urls')),
+    path('users/', include('users.urls')),
+    path('cart/', include('cart.urls')),
+    path('payments/', include('payments.urls')),
+    path('reviews/', include('reviews.urls')),
+    path('blog/', include('blog.urls')),
+    path('pages/', include('pages.urls')),
+    path('', include('cars.urls')),
 ]
 
 # Serve static and media files

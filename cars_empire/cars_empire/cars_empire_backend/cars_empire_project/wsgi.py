@@ -24,7 +24,37 @@ settings_module = 'cars_empire_project.settings_vercel' if os.environ.get('VERCE
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
 
 from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()
+_django_app = get_wsgi_application()
+
+import threading
+_db_ready = False
+_db_lock = threading.Lock()
+
+def ensure_database_ready():
+    global _db_ready
+    if _db_ready:
+        return
+    with _db_lock:
+        if _db_ready:
+            return
+        try:
+            from django.db import connection
+            tables = connection.introspection.table_names()
+            if 'django_migrations' not in tables or 'merchants_category' not in tables:
+                from django.core.management import call_command
+                call_command('migrate', interactive=False)
+                try:
+                    from cars_empire_project.seed_data import seed_demo_data
+                    seed_demo_data()
+                except Exception as seed_err:
+                    print(f"Seed note: {seed_err}")
+            _db_ready = True
+        except Exception as e:
+            print("Auto-migrate warning:", e)
+
+def application(environ, start_response):
+    ensure_database_ready()
+    return _django_app(environ, start_response)
 
 # Alias for Vercel WSGI runner
 app = application

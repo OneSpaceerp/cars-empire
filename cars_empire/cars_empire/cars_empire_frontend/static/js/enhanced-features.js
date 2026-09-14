@@ -1,7 +1,10 @@
 class CarsEmpireApp {
     constructor() {
-        this.apiBaseUrl = 'https://carsempire.net/api/';
-        this.frontendBaseUrl = 'https://carsempire.net/';
+        const origin = (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.startsWith('http'))
+            ? window.location.origin
+            : 'https://carsempire.net';
+        this.apiBaseUrl = `${origin}/api/`;
+        this.frontendBaseUrl = `${origin}/`;
         this.init();
     }
 

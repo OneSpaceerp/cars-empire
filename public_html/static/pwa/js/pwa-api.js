@@ -2,7 +2,9 @@
 
 class PWAAPI {
     constructor() {
-        this.baseURL = 'https://carsempire.net/api';
+        this.baseURL = (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.startsWith('http'))
+            ? window.location.origin + '/api'
+            : 'https://carsempire.net/api';
         this.cache = new Map();
         this.offlineQueue = [];
         this.init();
