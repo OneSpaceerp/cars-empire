@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, UserProfile, UserCar
+from .models import User, UserProfile, UserCar, Vehicle, Order, OrderItem
 
 # Define an inline admin descriptor for UserProfile model
 # which acts a bit like a singleton
