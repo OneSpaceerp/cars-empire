@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from django.http import HttpResponse
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -43,7 +44,20 @@ api_patterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
 
+def setup_db_view(request):
+    import io, traceback
+    out = io.StringIO()
+    try:
+        from django.core.management import call_command
+        call_command('migrate', interactive=False, stdout=out, stderr=out)
+        result = "SUCCESS: Database migrated successfully!\n\n" + out.getvalue()
+        return HttpResponse(result, content_type='text/plain; charset=utf-8')
+    except Exception:
+        err = "ERROR: Migration failed:\n\n" + traceback.format_exc()
+        return HttpResponse(err, content_type='text/plain; charset=utf-8', status=500)
+
 urlpatterns = [
+    path('setup-db/', setup_db_view, name='setup-db'),
     path('admin/', admin.site.urls),
     
     # Main website URLs

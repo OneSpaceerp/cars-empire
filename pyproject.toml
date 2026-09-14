@@ -1,8 +1,0 @@
-[project]
-name = "cars-empire"
-version = "1.0.0"
-description = "Cars Empire"
-requires-python = ">=3.10"
-
-[tool.vercel]
-entrypoint = "wsgi:application"
