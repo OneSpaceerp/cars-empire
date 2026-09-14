@@ -1,19 +1,13 @@
-﻿{
-  "version": 2,
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  },
-  "routes": [
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
     {
-      "src": "/app/(.*)",
-      "dest": "/public_html/app/$1"
+      "source": "/app/:path*",
+      "destination": "/public_html/app/:path*"
     },
     {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
+      "source": "/(.*)",
+      "destination": "/api/index.py"
     }
   ]
 }
