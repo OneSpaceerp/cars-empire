@@ -13,26 +13,58 @@ if str(BACKEND_DIR) not in sys.path:
 # Set Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cars_empire_project.settings_vercel')
 
-import django
-django.setup()
+_django_app = None
+_init_error = None
 
-# Auto-migrate for ephemeral SQLite in /tmp if no external DATABASE_URL is configured
-if not os.environ.get('DATABASE_URL', '').strip():
-    db_file = Path('/tmp/db.sqlite3')
-    flag_file = Path('/tmp/.migrated')
-    if not flag_file.exists():
+try:
+    import django
+    django.setup()
+    from django.core.wsgi import get_wsgi_application
+    _django_app = get_wsgi_application()
+except Exception:
+    import traceback
+    _init_error = traceback.format_exc()
+    print("DJANGO STARTUP ERROR:\n" + _init_error)
+
+def app(environ, start_response):
+    path_info = environ.get('PATH_INFO', '')
+    
+    # Setup/Migration endpoint
+    if path_info in ('/setup-db', '/setup-db/', '/api/setup-db', '/api/setup-db/'):
+        status = '200 OK'
+        headers = [('Content-Type', 'text/plain; charset=utf-8')]
+        start_response(status, headers)
+        import io
+        out = io.StringIO()
         try:
             from django.core.management import call_command
-            print('Initializing ephemeral test database in /tmp...')
-            call_command('migrate', interactive=False)
-            flag_file.touch()
-            print('Database initialization complete.')
-        except Exception as e:
-            print(f'Database auto-init note: {e}')
+            call_command('migrate', interactive=False, stdout=out, stderr=out)
+            result = "SUCCESS: Database migrated successfully!\n\n" + out.getvalue()
+        except Exception:
+            import traceback
+            result = "ERROR: Migration failed:\n\n" + traceback.format_exc()
+        return [result.encode('utf-8')]
 
-from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()
+    # If Django failed during cold start import, display the error
+    if _init_error:
+        status = '500 Internal Server Error'
+        headers = [('Content-Type', 'text/plain; charset=utf-8')]
+        start_response(status, headers)
+        msg = "CARS EMPIRE STARTUP ERROR:\n\n" + _init_error
+        return [msg.encode('utf-8')]
+    
+    # Execute normal Django request
+    try:
+        return _django_app(environ, start_response)
+    except Exception:
+        status = '500 Internal Server Error'
+        headers = [('Content-Type', 'text/plain; charset=utf-8')]
+        start_response(status, headers)
+        import traceback
+        tb = traceback.format_exc()
+        print("REQUEST EXCEPTION:\n" + tb)
+        msg = "CARS EMPIRE REQUEST ERROR:\n\n" + tb + "\n\nTip: You can initialize/migrate the database by visiting /setup-db/"
+        return [msg.encode('utf-8')]
 
-# Alias for Vercel Python runtime
-app = application
-handler = application
+handler = app
+application = app

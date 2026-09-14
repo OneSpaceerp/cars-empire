@@ -10,7 +10,10 @@ from merchants.models import PageAdvert
 
 # Create your views here.
 def homepage(request):
-    advert = PageAdvert.objects.filter(page_type='home', is_active=True).order_by('-updated_at').first()
+    try:
+        advert = PageAdvert.objects.filter(page_type='home', is_active=True).order_by('-updated_at').first()
+    except Exception:
+        advert = None
     return render(request, 'index.html', {'advert': advert})
     
 def cart_view(request):
