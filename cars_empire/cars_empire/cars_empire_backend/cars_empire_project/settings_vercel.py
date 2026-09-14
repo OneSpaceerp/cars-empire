@@ -95,11 +95,13 @@ TEMPLATES = [
     },
 ]
 
-# Media files
+# Media files (use writable /tmp for serverless runtime)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-os.makedirs(MEDIA_ROOT, exist_ok=True)
-os.makedirs(STATIC_ROOT, exist_ok=True)
+MEDIA_ROOT = Path('/tmp/media')
+try:
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+except Exception:
+    pass
 
 # CORS & CSRF for testing
 CORS_ALLOW_ALL_ORIGINS = True

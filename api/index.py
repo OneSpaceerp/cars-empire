@@ -6,9 +6,11 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 BACKEND_DIR = ROOT_DIR / 'cars_empire' / 'cars_empire' / 'cars_empire_backend'
 
-# Add backend directory to sys.path
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+# Add directories to sys.path
+FRONTEND_DIR = ROOT_DIR / 'cars_empire' / 'cars_empire' / 'cars_empire_frontend'
+for p in (str(BACKEND_DIR), str(FRONTEND_DIR), str(ROOT_DIR)):
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 # Set Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cars_empire_project.settings_vercel')

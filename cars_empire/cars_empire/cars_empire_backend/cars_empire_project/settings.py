@@ -111,11 +111,14 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files configuration
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/carsempire/public_html/media'
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', '/home/carsempire/public_html/media' if os.path.exists('/home/carsempire') else str(BASE_DIR / 'media'))
 
-# Ensure the static and media directories exist
-os.makedirs(STATIC_ROOT, exist_ok=True)
-os.makedirs(MEDIA_ROOT, exist_ok=True)
+# Ensure the static and media directories exist safely
+try:
+    os.makedirs(STATIC_ROOT, exist_ok=True)
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+except Exception:
+    pass
 
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
