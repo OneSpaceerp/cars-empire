@@ -80,7 +80,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'cars_empire_project.wsgi.application'
+WSGI_APPLICATION = 'wsgi.application' if os.environ.get('VERCEL') else 'cars_empire_project.wsgi.application'
 
 if os.environ.get('VERCEL') or os.environ.get('DATABASE_URL'):
     DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()

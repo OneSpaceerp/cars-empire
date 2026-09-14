@@ -50,6 +50,16 @@ def setup_db_view(request):
     try:
         from django.core.management import call_command
         call_command('migrate', interactive=False, stdout=out, stderr=out)
+        try:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            if not User.objects.filter(is_superuser=True).exists():
+                User.objects.create_superuser('admin', 'admin@carsempire.net', 'Admin123456!')
+                out.write("\nDefault admin created:\nUsername: admin\nPassword: Admin123456!\n")
+            else:
+                out.write("\nAdmin user already exists.\n")
+        except Exception as user_err:
+            out.write(f"\nUser creation check note: {user_err}\n")
         result = "SUCCESS: Database migrated successfully!\n\n" + out.getvalue()
         return HttpResponse(result, content_type='text/plain; charset=utf-8')
     except Exception:
@@ -58,6 +68,7 @@ def setup_db_view(request):
 
 urlpatterns = [
     path('setup-db/', setup_db_view, name='setup-db'),
+    path('setup-db', setup_db_view),
     path('admin/', admin.site.urls),
     
     # Main website URLs

@@ -72,8 +72,12 @@ STATICFILES_DIRS = [
 # Filter out non-existent static dirs to prevent warnings
 STATICFILES_DIRS = [d for d in STATICFILES_DIRS if d.exists()]
 
-# WhiteNoise storage: compressed manifest with fallback
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WSGI Entrypoint for Vercel
+WSGI_APPLICATION = 'wsgi.application'
+
+# WhiteNoise storage: compressed static files without strict missing file exception
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+WHITENOISE_MANIFEST_STRICT = False
 
 # Templates directory resolution
 TEMPLATES = [

@@ -1,13 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [
-    {
-      "source": "/app/:path*",
-      "destination": "/public_html/app/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.py"
+  "functions": {
+    "wsgi.py": {
+      "maxDuration": 60,
+      "memory": 1024
     }
-  ]
+  }
 }
