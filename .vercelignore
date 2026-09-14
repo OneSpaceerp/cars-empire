@@ -1,0 +1,27 @@
+﻿# Exclude heavy media from serverless python lambda
+public_html/media/
+cars_empire/**/media/
+cars_empire/**/staticfiles/
+staticfiles/
+media/
+Images_for_waffarha_app/
+
+# Exclude documentation and word files
+*.docx
+*.pdf
+*.txt
+*.md
+
+# Exclude archives
+*.zip
+*.tar.gz
+*.rar
+
+# Exclude databases and logs
+*.sqlite3
+*.log
+stderr.log
+error.log
+
+# Exclude node_modules
+node_modules/

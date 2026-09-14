@@ -1,23 +1,15 @@
-{
+﻿{
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "15mb",
-        "runtime": "python3.10"
-      }
-    },
-    {
-      "src": "public_html/app/**",
-      "use": "@vercel/static"
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 30,
+      "memory": 1024
     }
-  ],
+  },
   "routes": [
     {
       "src": "/app/(.*)",
-      "dest": "/public_html/app/"
+      "dest": "/public_html/app/$1"
     },
     {
       "src": "/(.*)",
