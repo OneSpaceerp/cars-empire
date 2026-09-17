@@ -757,8 +757,14 @@ function initSearch() {
 // 18. Service Worker Registration
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
+    // Auto-reload when new service worker takes control
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('[PWA] ServiceWorker updated, refreshing application...');
+      window.location.reload();
+    });
+
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/app/sw.js?v=3', { scope: '/app/' })
+      navigator.serviceWorker.register('/app/sw.js?v=4', { scope: '/app/' })
         .then((reg) => {
           console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
           // Check for update immediately to bust stale cache

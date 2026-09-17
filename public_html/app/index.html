@@ -9,7 +9,7 @@
   <link rel="manifest" href="/app/manifest.json"/>
   <meta name="theme-color" content="#0F141B"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
   <meta name="apple-mobile-web-app-title" content="Cars Empire"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="application-name" content="Cars Empire"/>
@@ -67,11 +67,22 @@
 
   <style>
     /* 1. Native Shell & Geometry Normalization */
-    html, body {
+    html {
+      width: 100%;
+      min-height: 100%;
+      min-height: -webkit-fill-available;
+      min-height: 100dvh;
+      margin: 0;
+      padding: 0;
+      background-color: #0F141B;
+    }
+
+    body {
       width: 100%;
       height: 100%;
-      height: -webkit-fill-available;
-      height: 100dvh;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      min-height: 100dvh;
       margin: 0;
       padding: 0;
       overflow: hidden;
@@ -97,16 +108,16 @@
       padding-top: max(env(safe-area-inset-top, 0px), 12px);
     }
     .pb-safe {
-      padding-bottom: 6px;
+      padding-bottom: 4px;
     }
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .pb-safe {
-        padding-bottom: min(max(calc(env(safe-area-inset-bottom, 0px) - 20px), 6px), 14px);
+        padding-bottom: min(max(calc(env(safe-area-inset-bottom, 0px) - 22px), 4px), 10px);
       }
     }
     @media (display-mode: standalone) {
       .pb-safe {
-        padding-bottom: min(max(calc(env(safe-area-inset-bottom, 0px) - 20px), 6px), 14px) !important;
+        padding-bottom: min(max(calc(env(safe-area-inset-bottom, 0px) - 22px), 4px), 10px) !important;
       }
     }
     .top-safe-offset {
@@ -1442,7 +1453,7 @@
   </div>
 
   <!-- PWA SPA Script -->
-  <script src="/app/app.js?v=3"></script>
+  <script src="/app/app.js?v=4"></script>
 
 </body>
 </html>
