@@ -23,6 +23,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Chivo:ital,wght@0,600;0,700;0,800;0,900;1,900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 
+  <!-- Instant Theme Hydration (Prevents Flash of Wrong Theme) -->
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('carsempire_theme') || 'dark';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script id="tailwind-config">
@@ -31,25 +45,25 @@
       theme: {
         extend: {
           colors: {
-            "telemetry-yellow": "#FFD000",
+            "telemetry-yellow": "var(--text-yellow)",
             "tach-green": "#10B981",
             "speed-red": "#EF4444",
             "gauge-cyan": "#06B6D4",
             "electric-amber": "#F59E0B",
-            "carbon-surface": "#0E1524",
-            "carbon-border": "#1E293B",
-            "background": "#0F141B",
-            "surface": "#0F141B",
-            "surface-container": "#1C2027",
-            "surface-container-high": "#262A32",
-            "surface-container-highest": "#31353D",
-            "surface-container-low": "#181C23",
-            "surface-container-lowest": "#0A0E15",
-            "on-surface": "#DFE2ED",
-            "on-surface-variant": "#C4C5D7",
-            "outline": "#8E90A0",
-            "outline-variant": "#434655",
-            "primary": "#B7C4FF",
+            "carbon-surface": "var(--bg-card)",
+            "carbon-border": "var(--border-carbon)",
+            "background": "var(--bg-surface)",
+            "surface": "var(--bg-surface)",
+            "surface-container": "var(--bg-container)",
+            "surface-container-high": "var(--bg-container-high)",
+            "surface-container-highest": "var(--bg-container-highest)",
+            "surface-container-low": "var(--bg-container-low)",
+            "surface-container-lowest": "var(--bg-container-lowest)",
+            "on-surface": "var(--text-main)",
+            "on-surface-variant": "var(--text-muted)",
+            "outline": "var(--text-outline)",
+            "outline-variant": "var(--border-subtle)",
+            "primary": "#3B82F6",
             "primary-container": "#1D4ED8",
             "on-primary": "#FFFFFF",
             "on-primary-container": "#CAD3FF",
@@ -66,13 +80,54 @@
   </script>
 
   <style>
-    /* 1. Native Shell & Geometry Normalization */
+    /* 1. Theme Tokens (CSS Variables) */
+    :root {
+      /* Light Mode Palette */
+      --bg-surface: #F8FAFC;
+      --bg-card: #FFFFFF;
+      --bg-container: #F1F5F9;
+      --bg-container-high: #E2E8F0;
+      --bg-container-highest: #CBD5E1;
+      --bg-container-low: #F8FAFC;
+      --bg-container-lowest: #FFFFFF;
+      --border-carbon: #E2E8F0;
+      --border-subtle: #CBD5E1;
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --text-outline: #64748B;
+      --text-yellow: #B45309;
+      --header-bg: rgba(255, 255, 255, 0.92);
+      --nav-bg: rgba(255, 255, 255, 0.95);
+      --theme-color: #F8FAFC;
+    }
+
+    html.dark {
+      /* Dark Mode Palette (Cockpit Carbon) */
+      --bg-surface: #0F141B;
+      --bg-card: #0E1524;
+      --bg-container: #1C2027;
+      --bg-container-high: #262A32;
+      --bg-container-highest: #31353D;
+      --bg-container-low: #181C23;
+      --bg-container-lowest: #0A0E15;
+      --border-carbon: #1E293B;
+      --border-subtle: #434655;
+      --text-main: #DFE2ED;
+      --text-muted: #C4C5D7;
+      --text-outline: #8E90A0;
+      --text-yellow: #FFD000;
+      --header-bg: rgba(15, 20, 27, 0.90);
+      --nav-bg: rgba(15, 20, 27, 0.95);
+      --theme-color: #0F141B;
+    }
+
+    /* 2. Native Shell & Geometry Normalization */
     html {
       width: 100%;
       height: 100%;
       margin: 0;
       padding: 0;
-      background-color: #0F141B;
+      background-color: var(--bg-surface);
     }
 
     body {
@@ -83,13 +138,14 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background-color: #0F141B;
-      color: #DFE2ED;
+      background-color: var(--bg-surface);
+      color: var(--text-main);
       font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
       user-select: none;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
     /* Input elements remain selectable */
@@ -120,7 +176,7 @@
       top: env(safe-area-inset-top, 0px);
     }
 
-    /* Designated Main Scroll Container */
+    /* Designated Main Scroll Container with dynamic top offset matching header */
     #app-scroll-container {
       position: absolute;
       top: 0;
@@ -134,6 +190,43 @@
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
       z-index: 10;
+      padding-top: calc(max(env(safe-area-inset-top, 0px), 12px) + 124px);
+      padding-bottom: 96px;
+    }
+
+    /* Adaptive contrast for Light Mode */
+    html:not(.dark) {
+      color-scheme: light;
+    }
+    html.dark {
+      color-scheme: dark;
+    }
+
+    html:not(.dark) .text-white:not(button):not(button *):not([class*="bg-speed-red"] *):not([class*="bg-primary"] *):not([class*="bg-tach-green"] *):not([class*="bg-gradient-to"] *):not(.badge *):not([class*="bg-black"] *):not(.text-keep-white) {
+      color: #0F172A !important;
+    }
+
+    html:not(.dark) header {
+      background-color: var(--header-bg) !important;
+      border-bottom-color: var(--border-carbon) !important;
+    }
+
+    html:not(.dark) nav {
+      background-color: var(--nav-bg) !important;
+      border-top-color: var(--border-carbon) !important;
+    }
+
+    html:not(.dark) .tab-active {
+      color: #1D4ED8 !important;
+    }
+    html:not(.dark) .tab-active .tab-icon {
+      color: #1D4ED8 !important;
+    }
+
+    html:not(.dark) input,
+    html:not(.dark) textarea {
+      color: #0F172A !important;
+      background-color: #F8FAFC !important;
     }
 
     /* Horizontal scroll elements allow smooth horizontal swiping */
@@ -264,7 +357,7 @@
   <!-- ========================================================
        MAIN APP CONTAINER (Scrolling Viewport)
        ======================================================== -->
-  <main id="app-scroll-container" class="w-full pt-32 pb-24">
+  <main id="app-scroll-container" class="w-full">
 
     <!-- ======================================================
          VIEW 1: HOME FEED (#view-home)
@@ -451,7 +544,7 @@
             <!-- Deal 1 -->
             <article class="w-64 flex-shrink-0 bg-carbon-surface border border-carbon-border rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between group">
               <div class="relative w-full h-36 bg-surface-container-high overflow-hidden">
-                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80" alt="Synthetic Oil Change"/>
+                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=600&q=80" alt="Synthetic Oil Change" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=600&q=80';"/>
                 <div class="absolute top-0 left-3 px-2 py-1 bg-telemetry-yellow text-on-secondary font-chivo font-black text-[11px] rounded-b shadow-md flex flex-col items-center">
                   <span>35%</span>
                   <span class="text-[8px] leading-none">OFF</span>
@@ -486,7 +579,7 @@
             <!-- Deal 2 -->
             <article class="w-64 flex-shrink-0 bg-carbon-surface border border-carbon-border rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between group">
               <div class="relative w-full h-36 bg-surface-container-high overflow-hidden">
-                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=600&q=80" alt="Ceramic Coating"/>
+                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=600&q=80" alt="Ceramic Coating" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=600&q=80';"/>
                 <div class="absolute top-0 left-3 px-2 py-1 bg-speed-red text-white font-chivo font-black text-[11px] rounded-b shadow-md flex flex-col items-center">
                   <span>50%</span>
                   <span class="text-[8px] leading-none">OFF</span>
@@ -521,7 +614,7 @@
             <!-- Deal 3 -->
             <article class="w-64 flex-shrink-0 bg-carbon-surface border border-carbon-border rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between group">
               <div class="relative w-full h-36 bg-surface-container-high overflow-hidden">
-                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=600&q=80" alt="Wheel Balancing"/>
+                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=600&q=80" alt="Wheel Balancing" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=600&q=80';"/>
                 <div class="absolute top-0 left-3 px-2 py-1 bg-telemetry-yellow text-on-secondary font-chivo font-black text-[11px] rounded-b shadow-md flex flex-col items-center">
                   <span>40%</span>
                   <span class="text-[8px] leading-none">OFF</span>
@@ -711,7 +804,7 @@
             <!-- Bundle 1 -->
             <div class="flex flex-col rounded-xl bg-carbon-surface border border-carbon-border overflow-hidden shadow-sm">
               <div class="relative h-28 w-full overflow-hidden bg-surface-container-high">
-                <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=400&q=80" alt="Express Lube"/>
+                <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=400&q=80" alt="Express Lube" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=400&q=80';"/>
                 <div class="absolute top-2 left-2 bg-speed-red text-white font-chivo font-black text-[10px] px-1.5 py-0.5 rounded shadow">-40%</div>
                 <div class="absolute top-2 right-2 bg-telemetry-yellow text-on-secondary font-chivo font-black text-[10px] px-1.5 py-0.5 rounded shadow">BUNDLE</div>
               </div>
@@ -736,7 +829,7 @@
             <!-- Bundle 2 -->
             <div class="flex flex-col rounded-xl bg-carbon-surface border border-carbon-border overflow-hidden shadow-sm">
               <div class="relative h-28 w-full overflow-hidden bg-surface-container-high">
-                <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=400&q=80" alt="PPF Mask"/>
+                <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=400&q=80" alt="PPF Mask" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=400&q=80';"/>
                 <div class="absolute top-2 left-2 bg-speed-red text-white font-chivo font-black text-[10px] px-1.5 py-0.5 rounded shadow">-30%</div>
                 <div class="absolute top-2 right-2 bg-telemetry-yellow text-on-secondary font-chivo font-black text-[10px] px-1.5 py-0.5 rounded shadow">BUNDLE</div>
               </div>
@@ -927,7 +1020,7 @@
           <!-- Perforated Ticket Interior -->
           <div class="p-3.5 bg-surface-container-lowest flex flex-col gap-3">
             <div class="bg-surface-container border border-carbon-border rounded-xl p-3 flex gap-3">
-              <img src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=200&q=80" alt="Ceramic Polish" class="w-16 h-16 rounded-lg object-cover flex-shrink-0"/>
+              <img src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=200&q=80" alt="Ceramic Polish" class="w-16 h-16 rounded-lg object-cover flex-shrink-0" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=300&q=80';"/>
               <div class="flex flex-col justify-between flex-1 min-w-0">
                 <div>
                   <div class="flex items-center justify-between">
@@ -993,7 +1086,7 @@
 
           <div class="p-3.5 bg-surface-container-lowest flex flex-col gap-3">
             <div class="bg-surface-container border border-carbon-border rounded-xl p-3 flex gap-3">
-              <img src="https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=200&q=80" alt="Castrol Edge" class="w-16 h-16 rounded-lg object-cover flex-shrink-0"/>
+              <img src="https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=300&q=80" alt="Castrol Edge" class="w-16 h-16 rounded-lg object-cover flex-shrink-0" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=300&q=80';"/>
               <div class="flex flex-col justify-between flex-1 min-w-0">
                 <div>
                   <div class="flex items-center justify-between">
@@ -1131,6 +1224,32 @@
           </div>
           <span class="text-[11px] text-white mt-1.5 font-semibold">Wishlist</span>
           <span class="text-[9px] text-on-surface-variant">5 Deals</span>
+        </div>
+      <!-- App Appearance / Theme Selector -->
+      <div class="flex flex-col bg-surface-container-low border border-carbon-border rounded-2xl p-3.5 shadow-md gap-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-carbon-surface border border-carbon-border flex items-center justify-center text-telemetry-yellow">
+              <span class="material-symbols-outlined text-[18px]">palette</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="font-chivo text-xs font-bold text-white">App Appearance</span>
+              <span class="text-[10px] text-on-surface-variant">Switch between Cockpit Dark &amp; Clean Light</span>
+            </div>
+          </div>
+          <span id="currentThemeLabel" class="text-[10px] font-mono text-primary font-bold uppercase">Dark Mode</span>
+        </div>
+        
+        <!-- Segmented Button Switcher -->
+        <div class="grid grid-cols-2 gap-2 bg-carbon-surface p-1 rounded-xl border border-carbon-border">
+          <button id="btnThemeDark" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all bg-primary-container text-white shadow active:scale-95" onclick="setTheme('dark')">
+            <span class="material-symbols-outlined text-[16px]">dark_mode</span>
+            <span>🌙 Dark</span>
+          </button>
+          <button id="btnThemeLight" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all text-on-surface-variant hover:text-white active:scale-95" onclick="setTheme('light')">
+            <span class="material-symbols-outlined text-[16px]">light_mode</span>
+            <span>☀️ Light</span>
+          </button>
         </div>
       </div>
 
@@ -1463,7 +1582,7 @@
   </div>
 
   <!-- PWA SPA Script -->
-  <script src="/app/app.js?v=5"></script>
+  <script src="/app/app.js?v=6"></script>
 
 </body>
 </html>

@@ -63,7 +63,7 @@ const state = {
       category_slug: 'oil',
       rating: 4.8,
       reviews_count: 142,
-      image_url: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80',
+      image_url: 'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=600&q=80',
       badge: 'POPULAR'
     },
     {
@@ -153,7 +153,7 @@ const state = {
       pin: '4912',
       validUntil: '2025-07-15',
       status: 'Paid',
-      imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=200&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=300&q=80'
     }
   ]
 };
@@ -267,6 +267,30 @@ function filterCategory(catSlug) {
   renderDeals();
 }
 
+// 7.5 Category Fallback Image Resolver
+function getCategoryFallbackImage(categorySlug, title = '') {
+  const t = (String(title || '') + ' ' + String(categorySlug || '')).toLowerCase();
+  if (t.includes('brake') || t.includes('pad') || t.includes('rotor')) {
+    return 'https://images.unsplash.com/photo-1613214149922-f1809c99b414?auto=format&fit=crop&w=600&q=80';
+  }
+  if (t.includes('tyre') || t.includes('tire') || t.includes('wheel') || t.includes('align')) {
+    return 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=600&q=80';
+  }
+  if (t.includes('ceramic') || t.includes('detail') || t.includes('wash') || t.includes('polish') || t.includes('spa')) {
+    return 'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=600&q=80';
+  }
+  if (t.includes('dyno') || t.includes('ecu') || t.includes('tune') || t.includes('stage') || t.includes('speed')) {
+    return 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=600&q=80';
+  }
+  if (t.includes('track') || t.includes('sport') || t.includes('prep')) {
+    return 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80';
+  }
+  if (t.includes('oil') || t.includes('lube') || t.includes('filter')) {
+    return 'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=600&q=80';
+  }
+  return 'https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=600&q=80';
+}
+
 // 8. Render Deals in Offers View
 function renderDeals() {
   const container = document.getElementById('dynamicDealsContainer');
@@ -302,7 +326,7 @@ function renderDeals() {
   container.innerHTML = filtered.map(deal => `
     <article class="bg-carbon-surface border border-carbon-border rounded-2xl overflow-hidden shadow-lg flex flex-col group">
       <div class="relative w-full h-36 bg-surface-container-high overflow-hidden">
-        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${deal.image_url}" alt="${deal.title}"/>
+        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${deal.image_url}" alt="${deal.title}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=600&q=80';"/>
         <div class="absolute top-0 left-3 px-2 py-1 bg-telemetry-yellow text-on-secondary font-chivo font-black text-[11px] rounded-b shadow-md flex flex-col items-center">
           <span>${deal.discount_percentage}%</span>
           <span class="text-[8px] leading-none">OFF</span>
@@ -356,7 +380,7 @@ function claimDeal(title, price, origPrice, merchant = 'Cars Empire Partner') {
     pin: newPin,
     validUntil: '2025-09-30',
     status: 'Paid',
-    imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=200&q=80'
+    imageUrl: getCategoryFallbackImage('', title)
   };
 
   state.coupons.unshift(newCoupon);
@@ -406,7 +430,7 @@ function updateCouponsUI() {
 
       <div class="p-3.5 bg-surface-container-lowest flex flex-col gap-3">
         <div class="bg-surface-container border border-carbon-border rounded-xl p-3 flex gap-3">
-          <img src="${coupon.imageUrl || 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=200&q=80'}" alt="Coupon" class="w-16 h-16 rounded-lg object-cover flex-shrink-0"/>
+          <img src="${coupon.imageUrl || 'https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=300&q=80'}" alt="Coupon" class="w-16 h-16 rounded-lg object-cover flex-shrink-0" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=300&q=80';"/>
           <div class="flex flex-col justify-between flex-1 min-w-0">
             <div>
               <div class="flex items-center justify-between">
@@ -630,19 +654,25 @@ async function fetchLiveBackendData() {
       const data = await dealsRes.json();
       const results = Array.isArray(data) ? data : (data.results || []);
       if (results.length > 0) {
-        state.deals = results.map(d => ({
-          id: d.id,
-          title: d.title,
-          merchant_name: d.merchant?.name || d.merchant_name || 'Certified Garage',
-          original_price: parseFloat(d.original_price || d.price || 1000),
-          discount_price: parseFloat(d.discount_price || d.final_price || 650),
-          discount_percentage: d.discount_percentage || 35,
-          category_slug: d.category?.slug || 'oil',
-          rating: parseFloat(d.rating || 4.8),
-          reviews_count: d.views_count || 45,
-          image_url: d.main_image || d.image || 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80',
-          badge: d.is_flash_sale ? 'FLASH' : (d.is_trending ? 'HOT' : null)
-        }));
+        state.deals = results.map(d => {
+          const fallbackImg = getCategoryFallbackImage(d.category?.slug, d.title);
+          const imgUrl = (d.main_image && typeof d.main_image === 'string' && d.main_image.startsWith('http'))
+            ? d.main_image
+            : ((d.image && typeof d.image === 'string' && d.image.startsWith('http')) ? d.image : fallbackImg);
+          return {
+            id: d.id,
+            title: d.title,
+            merchant_name: d.merchant?.name || d.merchant_name || 'Certified Garage',
+            original_price: parseFloat(d.original_price || d.price || 1000),
+            discount_price: parseFloat(d.discount_price || d.final_price || 650),
+            discount_percentage: d.discount_percentage || 35,
+            category_slug: d.category?.slug || 'oil',
+            rating: parseFloat(d.rating || 4.8),
+            reviews_count: d.views_count || 45,
+            image_url: imgUrl,
+            badge: d.is_flash_sale ? 'FLASH' : (d.is_trending ? 'HOT' : null)
+          };
+        });
         renderDeals();
       }
     }
@@ -754,7 +784,66 @@ function initSearch() {
   }
 }
 
-// 18. Service Worker Registration
+// 17. App Theme Management (Light / Dark Mode)
+function setTheme(theme) {
+  haptic(12);
+  const isDark = theme === 'dark';
+  const html = document.documentElement;
+
+  if (isDark) {
+    html.classList.add('dark');
+  } else {
+    html.classList.remove('dark');
+  }
+
+  try {
+    localStorage.setItem('carsempire_theme', theme);
+  } catch (e) {}
+
+  // Update theme-color meta tag
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) {
+    metaTheme.setAttribute('content', isDark ? '#0F141B' : '#F8FAFC');
+  }
+
+  // Update UI buttons and badge in Account tab
+  const btnDark = document.getElementById('btnThemeDark');
+  const btnLight = document.getElementById('btnThemeLight');
+  const label = document.getElementById('currentThemeLabel');
+
+  if (btnDark && btnLight) {
+    if (isDark) {
+      btnDark.className = 'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all bg-primary-container text-white shadow active:scale-95';
+      btnLight.className = 'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all text-on-surface-variant hover:text-white active:scale-95';
+    } else {
+      btnLight.className = 'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all bg-primary-container text-white shadow active:scale-95';
+      btnDark.className = 'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all text-on-surface-variant hover:text-slate-900 active:scale-95';
+    }
+  }
+
+  if (label) {
+    label.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+  }
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem('carsempire_theme') || 'dark';
+  setTheme(savedTheme);
+}
+
+// 18. Dynamic Top Padding to ensure header never covers the first feed element
+function adjustScrollPadding() {
+  const header = document.querySelector('header');
+  const scrollContainer = document.getElementById('app-scroll-container');
+  if (header && scrollContainer) {
+    const headerHeight = header.offsetHeight;
+    scrollContainer.style.paddingTop = `${headerHeight + 12}px`;
+  }
+}
+window.addEventListener('resize', adjustScrollPadding);
+window.addEventListener('orientationchange', adjustScrollPadding);
+
+// 19. Service Worker Registration
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     // Auto-reload when new service worker takes control
@@ -764,7 +853,7 @@ function registerServiceWorker() {
     });
 
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/app/sw.js?v=5', { scope: '/app/' })
+      navigator.serviceWorker.register('/app/sw.js?v=6', { scope: '/app/' })
         .then((reg) => {
           console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
           // Check for update immediately to bust stale cache
@@ -777,20 +866,22 @@ function registerServiceWorker() {
   }
 }
 
-// 19. Popstate / Back Gesture Integration
+// 20. Popstate / Back Gesture Integration
 window.addEventListener('popstate', (event) => {
   const target = event.state?.view || 'home';
   switchView(target);
 });
 
-// 20. Initialization on DOMContentLoaded
+// 21. Initialization on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   loadCachedState();
   renderDeals();
   updateCouponsUI();
   updateGarageUI();
   initTimers();
   initSearch();
+  adjustScrollPadding();
   registerServiceWorker();
 
   // Check URL query on start (e.g. ?tab=offers)
@@ -800,6 +891,11 @@ document.addEventListener('DOMContentLoaded', () => {
     switchView(initialTab);
   }
 
+  // Adjust again after fonts / layout settle
+  setTimeout(adjustScrollPadding, 200);
+
   // Fetch fresh data in background
-  fetchLiveBackendData();
+  fetchLiveBackendData().then(() => {
+    adjustScrollPadding();
+  });
 });
