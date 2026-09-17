@@ -758,9 +758,11 @@ function initSearch() {
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/app/sw.js', { scope: '/app/' })
+      navigator.serviceWorker.register('/app/sw.js?v=3', { scope: '/app/' })
         .then((reg) => {
           console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
+          // Check for update immediately to bust stale cache
+          reg.update();
         })
         .catch((err) => {
           console.warn('[PWA] ServiceWorker registration failed:', err);
