@@ -2,7 +2,7 @@
 <html class="dark" lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
   <title>Cars Empire - Telemetry Deals &amp; Auto Services</title>
   
   <!-- Native PWA Meta Tags -->
@@ -70,6 +70,8 @@
     html, body {
       width: 100%;
       height: 100%;
+      height: -webkit-fill-available;
+      height: 100dvh;
       margin: 0;
       padding: 0;
       overflow: hidden;
@@ -95,7 +97,7 @@
       padding-top: max(env(safe-area-inset-top, 0px), 12px);
     }
     .pb-safe {
-      padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+      padding-bottom: clamp(4px, env(safe-area-inset-bottom, 0px), 28px);
     }
     .top-safe-offset {
       top: env(safe-area-inset-top, 0px);
@@ -231,7 +233,7 @@
   <!-- ========================================================
        MAIN APP CONTAINER (Scrolling Viewport)
        ======================================================== -->
-  <main id="app-scroll-container" class="flex-1 w-full pt-32 pb-24">
+  <main id="app-scroll-container" class="flex-1 w-full pt-32 pb-20">
 
     <!-- ======================================================
          VIEW 1: HOME FEED (#view-home)
@@ -1174,35 +1176,35 @@
        BOTTOM NAVIGATION BAR (Fixed with Safe Area)
        ======================================================== -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-xl border-t border-carbon-border pb-safe">
-    <div class="flex justify-around items-center h-16 px-2">
+    <div class="flex justify-around items-center h-[52px] px-2">
       <!-- Tab 1: Home -->
-      <button class="nav-tab tab-active flex flex-col items-center justify-center w-14 h-12 transition-all active:scale-95" data-view="home" onclick="switchView('home')">
+      <button class="nav-tab tab-active flex flex-col items-center justify-center w-14 h-[44px] py-0.5 transition-all active:scale-95" data-view="home" onclick="switchView('home')">
         <span class="material-symbols-outlined tab-icon text-[22px] transition-all">speed</span>
-        <span class="font-chivo text-[10px] font-bold mt-0.5">Home</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight">Home</span>
       </button>
 
       <!-- Tab 2: Offers -->
-      <button class="nav-tab flex flex-col items-center justify-center w-14 h-12 text-on-surface-variant transition-all active:scale-95" data-view="offers" onclick="switchView('offers')">
+      <button class="nav-tab flex flex-col items-center justify-center w-14 h-[44px] py-0.5 text-on-surface-variant transition-all active:scale-95" data-view="offers" onclick="switchView('offers')">
         <span class="material-symbols-outlined tab-icon text-[22px] transition-all">local_offer</span>
-        <span class="font-chivo text-[10px] font-bold mt-0.5">Offers</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight">Offers</span>
       </button>
 
       <!-- Tab 3: Garage -->
-      <button class="nav-tab flex flex-col items-center justify-center w-14 h-12 text-on-surface-variant transition-all active:scale-95" data-view="garage" onclick="switchView('garage')">
+      <button class="nav-tab flex flex-col items-center justify-center w-14 h-[44px] py-0.5 text-on-surface-variant transition-all active:scale-95" data-view="garage" onclick="switchView('garage')">
         <span class="material-symbols-outlined tab-icon text-[22px] transition-all">garage</span>
-        <span class="font-chivo text-[10px] font-bold mt-0.5">Garage</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight">Garage</span>
       </button>
 
       <!-- Tab 4: Coupons -->
-      <button class="nav-tab flex flex-col items-center justify-center w-14 h-12 text-on-surface-variant transition-all active:scale-95" data-view="coupons" onclick="switchView('coupons')">
+      <button class="nav-tab flex flex-col items-center justify-center w-14 h-[44px] py-0.5 text-on-surface-variant transition-all active:scale-95" data-view="coupons" onclick="switchView('coupons')">
         <span class="material-symbols-outlined tab-icon text-[22px] transition-all">confirmation_number</span>
-        <span class="font-chivo text-[10px] font-bold mt-0.5">Coupons</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight">Coupons</span>
       </button>
 
       <!-- Tab 5: Account -->
-      <button class="nav-tab flex flex-col items-center justify-center w-14 h-12 text-on-surface-variant transition-all active:scale-95" data-view="account" onclick="switchView('account')">
+      <button class="nav-tab flex flex-col items-center justify-center w-14 h-[44px] py-0.5 text-on-surface-variant transition-all active:scale-95" data-view="account" onclick="switchView('account')">
         <span class="material-symbols-outlined tab-icon text-[22px] transition-all">account_circle</span>
-        <span class="font-chivo text-[10px] font-bold mt-0.5">Account</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight">Account</span>
       </button>
     </div>
   </nav>
