@@ -813,11 +813,11 @@ function setTheme(theme) {
 
   if (btnDark && btnLight) {
     if (isDark) {
-      btnDark.className = 'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all bg-primary-container text-white shadow active:scale-95';
-      btnLight.className = 'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all text-on-surface-variant hover:text-white active:scale-95';
+      btnDark.className = 'w-full h-12 flex items-center justify-center gap-2 rounded-lg font-chivo text-xs font-bold uppercase tracking-wider transition-all bg-primary-container text-white shadow active:scale-95 cursor-pointer';
+      btnLight.className = 'w-full h-12 flex items-center justify-center gap-2 rounded-lg font-chivo text-xs font-bold uppercase tracking-wider transition-all text-on-surface-variant hover:text-white active:scale-95 cursor-pointer';
     } else {
-      btnLight.className = 'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all bg-primary-container text-white shadow active:scale-95';
-      btnDark.className = 'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all text-on-surface-variant hover:text-slate-900 active:scale-95';
+      btnLight.className = 'w-full h-12 flex items-center justify-center gap-2 rounded-lg font-chivo text-xs font-bold uppercase tracking-wider transition-all bg-primary-container text-white shadow active:scale-95 cursor-pointer';
+      btnDark.className = 'w-full h-12 flex items-center justify-center gap-2 rounded-lg font-chivo text-xs font-bold uppercase tracking-wider transition-all text-on-surface-variant hover:text-slate-900 active:scale-95 cursor-pointer';
     }
   }
 
@@ -853,7 +853,7 @@ function registerServiceWorker() {
     });
 
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/app/sw.js?v=6', { scope: '/app/' })
+      navigator.serviceWorker.register('/app/sw.js?v=7', { scope: '/app/' })
         .then((reg) => {
           console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
           // Check for update immediately to bust stale cache

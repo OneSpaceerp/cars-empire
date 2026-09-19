@@ -291,7 +291,6 @@
     }
     .tab-active .tab-icon {
       color: #FFD000 !important;
-      transform: translateY(-2px);
     }
   </style>
 </head>
@@ -1225,30 +1224,32 @@
           <span class="text-[11px] text-white mt-1.5 font-semibold">Wishlist</span>
           <span class="text-[9px] text-on-surface-variant">5 Deals</span>
         </div>
-      <!-- App Appearance / Theme Selector -->
-      <div class="flex flex-col bg-surface-container-low border border-carbon-border rounded-2xl p-3.5 shadow-md gap-2.5">
+      </div>
+
+      <!-- App Appearance / Theme Selector (Mobile Full-Width Card) -->
+      <div class="w-full bg-surface-container-low border border-carbon-border rounded-2xl p-4 shadow-sm flex flex-col gap-3">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-carbon-surface border border-carbon-border flex items-center justify-center text-telemetry-yellow">
-              <span class="material-symbols-outlined text-[18px]">palette</span>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-carbon-surface border border-carbon-border flex items-center justify-center text-telemetry-yellow shadow-inner">
+              <span class="material-symbols-outlined text-[20px]">palette</span>
             </div>
             <div class="flex flex-col">
-              <span class="font-chivo text-xs font-bold text-white">App Appearance</span>
-              <span class="text-[10px] text-on-surface-variant">Switch between Cockpit Dark &amp; Clean Light</span>
+              <span class="font-chivo text-sm font-bold text-white tracking-tight">App Appearance</span>
+              <span class="text-[11px] text-on-surface-variant font-medium">Switch between Dark &amp; Light theme</span>
             </div>
           </div>
-          <span id="currentThemeLabel" class="text-[10px] font-mono text-primary font-bold uppercase">Dark Mode</span>
+          <span id="currentThemeLabel" class="text-[10px] font-mono font-bold text-primary uppercase tracking-wider bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">Dark Mode</span>
         </div>
         
-        <!-- Segmented Button Switcher -->
-        <div class="grid grid-cols-2 gap-2 bg-carbon-surface p-1 rounded-xl border border-carbon-border">
-          <button id="btnThemeDark" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all bg-primary-container text-white shadow active:scale-95" onclick="setTheme('dark')">
-            <span class="material-symbols-outlined text-[16px]">dark_mode</span>
-            <span>🌙 Dark</span>
+        <!-- Mobile-Friendly Segmented Theme Switcher (Full Width with 48px touch targets) -->
+        <div class="grid grid-cols-2 gap-2.5 w-full bg-carbon-surface p-1.5 rounded-xl border border-carbon-border">
+          <button id="btnThemeDark" type="button" class="w-full h-12 flex items-center justify-center gap-2 rounded-lg font-chivo text-xs font-bold uppercase tracking-wider transition-all bg-primary-container text-white shadow active:scale-95 cursor-pointer" onclick="setTheme('dark')">
+            <span class="material-symbols-outlined text-[20px]">dark_mode</span>
+            <span>Dark Mode</span>
           </button>
-          <button id="btnThemeLight" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-chivo text-xs font-bold uppercase transition-all text-on-surface-variant hover:text-white active:scale-95" onclick="setTheme('light')">
-            <span class="material-symbols-outlined text-[16px]">light_mode</span>
-            <span>☀️ Light</span>
+          <button id="btnThemeLight" type="button" class="w-full h-12 flex items-center justify-center gap-2 rounded-lg font-chivo text-xs font-bold uppercase tracking-wider transition-all text-on-surface-variant hover:text-white active:scale-95 cursor-pointer" onclick="setTheme('light')">
+            <span class="material-symbols-outlined text-[20px]">light_mode</span>
+            <span>Light Mode</span>
           </button>
         </div>
       </div>
@@ -1326,35 +1327,35 @@
        BOTTOM NAVIGATION BAR (Fixed with Safe Area)
        ======================================================== -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-xl border-t border-carbon-border pb-safe">
-    <div class="flex justify-around items-center h-[48px] px-2">
+    <div class="flex justify-around items-end h-[52px] px-2 pb-1">
       <!-- Tab 1: Home -->
-      <button class="nav-tab tab-active flex flex-col items-center justify-center w-14 h-[40px] py-0.5 transition-all active:scale-95" data-view="home" onclick="switchView('home')">
-        <span class="material-symbols-outlined tab-icon text-[20px] transition-all">speed</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight">Home</span>
+      <button class="nav-tab tab-active flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 transition-all active:scale-95 cursor-pointer" data-view="home" onclick="switchView('home')">
+        <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">speed</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Home</span>
       </button>
 
       <!-- Tab 2: Offers -->
-      <button class="nav-tab flex flex-col items-center justify-center w-14 h-[40px] py-0.5 text-on-surface-variant transition-all active:scale-95" data-view="offers" onclick="switchView('offers')">
-        <span class="material-symbols-outlined tab-icon text-[20px] transition-all">local_offer</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight">Offers</span>
+      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="offers" onclick="switchView('offers')">
+        <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">local_offer</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Offers</span>
       </button>
 
       <!-- Tab 3: Garage -->
-      <button class="nav-tab flex flex-col items-center justify-center w-14 h-[40px] py-0.5 text-on-surface-variant transition-all active:scale-95" data-view="garage" onclick="switchView('garage')">
-        <span class="material-symbols-outlined tab-icon text-[20px] transition-all">garage</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight">Garage</span>
+      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="garage" onclick="switchView('garage')">
+        <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">garage</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Garage</span>
       </button>
 
       <!-- Tab 4: Coupons -->
-      <button class="nav-tab flex flex-col items-center justify-center w-14 h-[40px] py-0.5 text-on-surface-variant transition-all active:scale-95" data-view="coupons" onclick="switchView('coupons')">
-        <span class="material-symbols-outlined tab-icon text-[20px] transition-all">confirmation_number</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight">Coupons</span>
+      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="coupons" onclick="switchView('coupons')">
+        <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">confirmation_number</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Coupons</span>
       </button>
 
       <!-- Tab 5: Account -->
-      <button class="nav-tab flex flex-col items-center justify-center w-14 h-[40px] py-0.5 text-on-surface-variant transition-all active:scale-95" data-view="account" onclick="switchView('account')">
-        <span class="material-symbols-outlined tab-icon text-[20px] transition-all">account_circle</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight">Account</span>
+      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="account" onclick="switchView('account')">
+        <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">account_circle</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Account</span>
       </button>
     </div>
   </nav>
@@ -1582,7 +1583,7 @@
   </div>
 
   <!-- PWA SPA Script -->
-  <script src="/app/app.js?v=6"></script>
+  <script src="/app/app.js?v=7"></script>
 
 </body>
 </html>
