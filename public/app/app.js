@@ -843,6 +843,26 @@ function adjustScrollPadding() {
 window.addEventListener('resize', adjustScrollPadding);
 window.addEventListener('orientationchange', adjustScrollPadding);
 
+// 18b. Dynamic iOS Bottom Chin Hardware Fix
+function fixIOSBottomChin() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  
+  if (isIOS) {
+    const nav = document.querySelector('nav');
+    if (nav) {
+      const screenH = window.screen.height;
+      const windowH = window.innerHeight;
+      const diff = screenH - windowH;
+      if (diff > 15 && diff < 160) {
+        nav.style.paddingBottom = `max(env(safe-area-inset-bottom, 0px), ${diff}px)`;
+      }
+    }
+  }
+}
+window.addEventListener('resize', fixIOSBottomChin);
+window.addEventListener('orientationchange', fixIOSBottomChin);
+
 // 19. Service Worker Registration
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -853,7 +873,7 @@ function registerServiceWorker() {
     });
 
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/app/sw.js?v=8', { scope: '/app/' })
+      navigator.serviceWorker.register('/app/sw.js?v=9', { scope: '/app/' })
         .then((reg) => {
           console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
           // Check for update immediately to bust stale cache
@@ -882,6 +902,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTimers();
   initSearch();
   adjustScrollPadding();
+  fixIOSBottomChin();
   registerServiceWorker();
 
   // Check URL query on start (e.g. ?tab=offers)
@@ -893,9 +914,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Adjust again after fonts / layout settle
   setTimeout(adjustScrollPadding, 200);
+  setTimeout(fixIOSBottomChin, 300);
 
   // Fetch fresh data in background
   fetchLiveBackendData().then(() => {
     adjustScrollPadding();
+    fixIOSBottomChin();
   });
 });

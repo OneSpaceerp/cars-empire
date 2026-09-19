@@ -125,6 +125,9 @@
     html {
       width: 100%;
       height: 100%;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      min-height: calc(100% + env(safe-area-inset-top, 0px));
       margin: 0;
       padding: 0;
       background-color: var(--bg-surface);
@@ -137,7 +140,8 @@
       right: 0;
       bottom: 0;
       width: 100%;
-      height: 100dvh;
+      height: 100%;
+      min-height: 100vh;
       min-height: -webkit-fill-available;
       margin: 0;
       padding: 0;
@@ -164,16 +168,16 @@
       padding-top: max(env(safe-area-inset-top, 0px), 12px);
     }
     .pb-safe {
-      padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) - 6px), 6px);
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 18px);
     }
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .pb-safe {
-        padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) - 6px), 6px);
+        padding-bottom: max(env(safe-area-inset-bottom, 0px), 18px);
       }
     }
     @media (display-mode: standalone) {
       .pb-safe {
-        padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) - 6px), 6px) !important;
+        padding-bottom: max(env(safe-area-inset-bottom, 0px), 18px) !important;
       }
     }
     .top-safe-offset {
@@ -195,7 +199,7 @@
       touch-action: pan-y;
       z-index: 10;
       padding-top: calc(max(env(safe-area-inset-top, 0px), 12px) + 124px);
-      padding-bottom: calc(max(env(safe-area-inset-bottom, 0px), 16px) + 84px);
+      padding-bottom: calc(max(env(safe-area-inset-bottom, 0px), 24px) + 84px);
     }
 
     /* Adaptive contrast for Light Mode */
@@ -217,11 +221,30 @@
 
     /* Unified Frosted Glass Footer Bar */
     nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
       background: var(--nav-bg) !important;
       backdrop-filter: blur(24px) saturate(190%) !important;
       -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
       border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
       box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    }
+
+    /* iOS Hardware Chin Gap Cover: guarantees zero black gap below nav under any WebKit viewport quirk */
+    nav::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      height: 250px;
+      background: var(--nav-bg) !important;
+      backdrop-filter: blur(24px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+      pointer-events: none;
     }
 
     html:not(.dark) nav {
@@ -230,6 +253,12 @@
       -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
       border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
       box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.8) !important;
+    }
+
+    html:not(.dark) nav::after {
+      background: var(--nav-bg) !important;
+      backdrop-filter: blur(24px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
     }
 
     html:not(.dark) .tab-active {
@@ -1599,7 +1628,7 @@
   </div>
 
   <!-- PWA SPA Script -->
-  <script src="/app/app.js?v=8"></script>
+  <script src="/app/app.js?v=9"></script>
 
 </body>
 </html>

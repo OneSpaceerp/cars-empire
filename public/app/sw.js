@@ -1,9 +1,9 @@
-const CACHE_NAME = 'carsempire-pwa-v8';
+const CACHE_NAME = 'carsempire-pwa-v9';
 const STATIC_ASSETS = [
   '/app/',
   '/app/index.html',
   '/app/app.js',
-  '/app/app.js?v=8',
+  '/app/app.js?v=9',
   '/app/manifest.json',
   '/app/logo.png',
   'https://cdn.tailwindcss.com',
@@ -41,12 +41,18 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
 
-  // 1. Navigation requests: App Shell fallback
-  if (request.mode === 'navigate') {
+  // 1. Navigation requests & core scripts: Network-First with Cache Fallback
+  if (request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('.js') || url.search.includes('v=')) {
     event.respondWith(
-      fetch(request).catch(() => {
-        return caches.match('/app/index.html') || caches.match('/app/');
-      })
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request) || caches.match('/app/index.html') || caches.match('/app/'))
     );
     return;
   }
