@@ -9,7 +9,7 @@
   <link rel="manifest" href="/app/manifest.json"/>
   <meta name="theme-color" content="#0F141B"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Cars Empire"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="application-name" content="Cars Empire"/>
@@ -97,7 +97,7 @@
       --text-outline: #64748B;
       --text-yellow: #B45309;
       --header-bg: rgba(255, 255, 255, 0.92);
-      --nav-bg: rgba(255, 255, 255, 0.95);
+      --nav-bg: rgba(255, 255, 255, 0.82);
       --theme-color: #F8FAFC;
     }
 
@@ -117,7 +117,7 @@
       --text-outline: #8E90A0;
       --text-yellow: #FFD000;
       --header-bg: rgba(15, 20, 27, 0.90);
-      --nav-bg: rgba(15, 20, 27, 0.95);
+      --nav-bg: rgba(15, 20, 27, 0.72);
       --theme-color: #0F141B;
     }
 
@@ -132,9 +132,13 @@
 
     body {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       width: 100%;
-      height: 100%;
+      height: 100dvh;
+      min-height: -webkit-fill-available;
       margin: 0;
       padding: 0;
       overflow: hidden;
@@ -160,16 +164,16 @@
       padding-top: max(env(safe-area-inset-top, 0px), 12px);
     }
     .pb-safe {
-      padding-bottom: 4px;
+      padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) - 6px), 6px);
     }
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .pb-safe {
-        padding-bottom: min(max(calc(env(safe-area-inset-bottom, 0px) - 22px), 4px), 10px);
+        padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) - 6px), 6px);
       }
     }
     @media (display-mode: standalone) {
       .pb-safe {
-        padding-bottom: min(max(calc(env(safe-area-inset-bottom, 0px) - 22px), 4px), 10px) !important;
+        padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) - 6px), 6px) !important;
       }
     }
     .top-safe-offset {
@@ -191,7 +195,7 @@
       touch-action: pan-y;
       z-index: 10;
       padding-top: calc(max(env(safe-area-inset-top, 0px), 12px) + 124px);
-      padding-bottom: 96px;
+      padding-bottom: calc(max(env(safe-area-inset-bottom, 0px), 16px) + 84px);
     }
 
     /* Adaptive contrast for Light Mode */
@@ -211,9 +215,21 @@
       border-bottom-color: var(--border-carbon) !important;
     }
 
+    /* Unified Frosted Glass Footer Bar */
+    nav {
+      background: var(--nav-bg) !important;
+      backdrop-filter: blur(24px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    }
+
     html:not(.dark) nav {
-      background-color: var(--nav-bg) !important;
-      border-top-color: var(--border-carbon) !important;
+      background: var(--nav-bg) !important;
+      backdrop-filter: blur(24px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+      border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.8) !important;
     }
 
     html:not(.dark) .tab-active {
@@ -1324,38 +1340,38 @@
   </main>
 
   <!-- ========================================================
-       BOTTOM NAVIGATION BAR (Fixed with Safe Area)
+       BOTTOM NAVIGATION BAR (Unified Frosted Glass Footer)
        ======================================================== -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-xl border-t border-carbon-border pb-safe">
-    <div class="flex justify-around items-end h-[52px] px-2 pb-1">
+  <nav class="fixed bottom-0 left-0 right-0 z-40 pb-safe transition-colors duration-200">
+    <div class="flex justify-around items-end h-[56px] px-2 pb-1">
       <!-- Tab 1: Home -->
-      <button class="nav-tab tab-active flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 transition-all active:scale-95 cursor-pointer" data-view="home" onclick="switchView('home')">
+      <button class="nav-tab tab-active flex flex-col items-center justify-end w-14 h-[48px] pb-1 transition-all active:scale-95 cursor-pointer" data-view="home" onclick="switchView('home')">
         <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">speed</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Home</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-1">Home</span>
       </button>
 
       <!-- Tab 2: Offers -->
-      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="offers" onclick="switchView('offers')">
+      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[48px] pb-1 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="offers" onclick="switchView('offers')">
         <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">local_offer</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Offers</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-1">Offers</span>
       </button>
 
       <!-- Tab 3: Garage -->
-      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="garage" onclick="switchView('garage')">
+      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[48px] pb-1 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="garage" onclick="switchView('garage')">
         <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">garage</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Garage</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-1">Garage</span>
       </button>
 
       <!-- Tab 4: Coupons -->
-      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="coupons" onclick="switchView('coupons')">
+      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[48px] pb-1 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="coupons" onclick="switchView('coupons')">
         <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">confirmation_number</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Coupons</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-1">Coupons</span>
       </button>
 
       <!-- Tab 5: Account -->
-      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[46px] pb-0.5 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="account" onclick="switchView('account')">
+      <button class="nav-tab flex flex-col items-center justify-end w-14 h-[48px] pb-1 text-on-surface-variant transition-all active:scale-95 cursor-pointer" data-view="account" onclick="switchView('account')">
         <span class="material-symbols-outlined tab-icon text-[25px] leading-none transition-all">account_circle</span>
-        <span class="font-chivo text-[10px] font-bold leading-tight mt-0.5">Account</span>
+        <span class="font-chivo text-[10px] font-bold leading-tight mt-1">Account</span>
       </button>
     </div>
   </nav>
@@ -1583,7 +1599,7 @@
   </div>
 
   <!-- PWA SPA Script -->
-  <script src="/app/app.js?v=7"></script>
+  <script src="/app/app.js?v=8"></script>
 
 </body>
 </html>
