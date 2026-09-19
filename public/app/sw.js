@@ -1,9 +1,9 @@
-const CACHE_NAME = 'carsempire-pwa-v9';
+const CACHE_NAME = 'carsempire-pwa-v10';
 const STATIC_ASSETS = [
   '/app/',
   '/app/index.html',
   '/app/app.js',
-  '/app/app.js?v=9',
+  '/app/app.js?v=10',
   '/app/manifest.json',
   '/app/logo.png',
   'https://cdn.tailwindcss.com',

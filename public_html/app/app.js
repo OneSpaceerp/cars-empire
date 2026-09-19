@@ -873,7 +873,7 @@ function registerServiceWorker() {
     });
 
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/app/sw.js?v=9', { scope: '/app/' })
+      navigator.serviceWorker.register('/app/sw.js?v=10', { scope: '/app/' })
         .then((reg) => {
           console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
           // Check for update immediately to bust stale cache
